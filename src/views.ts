@@ -11,6 +11,7 @@ let nameToId: Record<string, string> = {};
 let viewsHead: Record<string, any> = {};
 let viewsDigest: Record<string, StoredViewDigest> = {};
 let viewsList: string[] = [];
+let viewsSymlinks: Record<string, string> = {};
 
 try {
   // @ts-ignore
@@ -20,6 +21,7 @@ try {
   viewsHead = virtualData.viewsHead || {};
   viewsDigest = virtualData.viewsDigest || {};
   viewsList = virtualData.viewsList || [];
+  viewsSymlinks = virtualData.viewsSymlinks || {};
 } catch {
   // Non-Vite unit testing or headless environment
 }
@@ -262,6 +264,77 @@ export function setViewsList(data: string[]): void {
 }
 
 /**
+ * Programmatically set viewsSymlinks (useful for tests or headless environments).
+ */
+export function setViewsSymlinks(data: Record<string, string>): void {
+  viewsSymlinks = data;
+}
+
+/**
+ * Checks whether a view name/path corresponds to a symlinked view.
+ */
+export function isSymlink(viewPath: string): boolean {
+  if (viewPath === null || viewPath === undefined || typeof viewPath !== "string") {
+    return false;
+  }
+  const norm = normalizeViewName(viewPath);
+  const clean = norm.replace(/^@::/, "");
+  if (!clean && !norm) return false;
+
+  return (
+    clean in viewsSymlinks ||
+    clean.toLowerCase() in viewsSymlinks ||
+    norm in viewsSymlinks ||
+    norm.toLowerCase() in viewsSymlinks ||
+    `@::${clean}` in viewsSymlinks ||
+    `@::${clean.toLowerCase()}` in viewsSymlinks
+  );
+}
+
+/**
+ * Resolves a symlink to its real canonical view path by following all symlinks in the chain.
+ * If the view is direct (not a symlink), returns the same path unchanged.
+ */
+export function resolveSymlink(viewPath: string): string {
+  if (viewPath === null || viewPath === undefined || typeof viewPath !== "string") {
+    return viewPath as any;
+  }
+  if (!isSymlink(viewPath)) {
+    return viewPath;
+  }
+
+  let current = viewPath;
+  const visited = new Set<string>();
+
+  while (isSymlink(current)) {
+    const norm = normalizeViewName(current);
+    const clean = norm.replace(/^@::/, "");
+    const lower = clean.toLowerCase();
+
+    if (visited.has(clean) || visited.has(lower)) {
+      break;
+    }
+    visited.add(clean);
+    visited.add(lower);
+
+    const target =
+      viewsSymlinks[clean] ??
+      viewsSymlinks[lower] ??
+      viewsSymlinks[norm] ??
+      viewsSymlinks[norm.toLowerCase()] ??
+      viewsSymlinks[`@::${clean}`] ??
+      viewsSymlinks[`@::${lower}`];
+
+    if (!target) {
+      break;
+    }
+    current = target;
+  }
+
+  return current;
+}
+
+/**
  * Queries registered views matching a path pattern using Path from path.ts.
  *
  * e.g.
@@ -300,6 +373,8 @@ export interface ViewFunction {
   head: (name: string) => HeadConfig | undefined;
   digest: (name: string, options?: ViewDigestOptions) => Record<string, number>;
   query: (pattern: string) => string[];
+  isSymlink: (viewPath: string) => boolean;
+  resolveSymlink: (viewPath: string) => string;
 }
 
 /**
@@ -324,5 +399,7 @@ view.get = get;
 view.head = viewHead;
 view.digest = viewDigest;
 view.query = viewQuery;
+view.isSymlink = isSymlink;
+view.resolveSymlink = resolveSymlink;
 
 export default view;

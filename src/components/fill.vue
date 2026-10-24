@@ -1,5 +1,5 @@
 <template>
-  <div ref="containerRef" class="relative flex items-center justify-center w-full box-border">
+  <div ref="containerRef" class="relative flex items-center justify-center w-full h-full box-border">
     <div
       ref="contentRef"
       class="box-border overflow-hidden origin-center transition-all duration-180 ease-out will-change-[width,height,transform,border-radius]"

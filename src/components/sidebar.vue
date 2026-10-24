@@ -71,7 +71,6 @@
                 'fictif-rail-item-btn--hovered': hoveredItemKey === item.key,
                 'fictif-rail-item-btn--no-content': !item.hasContent,
               }"
-              :disabled="!item.hasContent"
               @mouseenter="handleItemMouseEnter(item.key, item.hasContent)"
               @click="handleItemClick(item.key, item.hasContent)"
             >
@@ -98,7 +97,6 @@
                 'fictif-rail-item-btn--hovered': hoveredItemKey === bottomItem.key,
                 'fictif-rail-item-btn--no-content': !bottomItem.hasContent,
               }"
-              :disabled="!bottomItem.hasContent"
               @mouseenter="handleItemMouseEnter(bottomItem.key, bottomItem.hasContent)"
               @click="handleItemClick(bottomItem.key, bottomItem.hasContent)"
             >

@@ -238,9 +238,9 @@ export function createFictifApp(options: FictifAppOptions = {}): App {
   }
 
   // 1. In router on leaving:
-  // On the very first routing: fade in immediately!
-  // On subsequent routings: show loader only if navigation takes > 500ms
-  router.onLeaving(() => {
+  // Fade in curtain immediately and return a Promise waiting 500ms so the router
+  // is blocked until the curtain has fully shown before switching views!
+  router.onLeaving(async () => {
     if (loaderTimer) {
       clearTimeout(loaderTimer);
       loaderTimer = null;
@@ -253,25 +253,23 @@ export function createFictifApp(options: FictifAppOptions = {}): App {
     const isFirstVisit = visitCount === 0;
     visitCount++;
 
+    if (!activeLoaderCurtain) {
+      activeLoaderCurtain = curtains.show(defaultLoaderOptions);
+      curtainShownAt = Date.now();
+    }
+
     if (isFirstVisit) {
-      if (!activeLoaderCurtain) {
-        activeLoaderCurtain = curtains.show(defaultLoaderOptions);
-        curtainShownAt = Date.now();
-        // The curtain fades in over 500ms on top of the black pre-curtain.
-        // Once the curtain finishes fading in (500ms), dismiss the pre-curtain
-        // behind it so it's completely gone before the curtain starts fading out!
-        setTimeout(() => {
-          dismissPreCurtain();
-        }, 500);
-      }
-    } else {
-      loaderTimer = setTimeout(() => {
-        if (!activeLoaderCurtain) {
-          activeLoaderCurtain = curtains.show(defaultLoaderOptions);
-          curtainShownAt = Date.now();
-        }
+      // The curtain fades in over 500ms on top of the black pre-curtain.
+      // Once the curtain finishes fading in (500ms), dismiss the pre-curtain
+      // behind it so it's completely gone before the curtain starts fading out!
+      setTimeout(() => {
+        dismissPreCurtain();
       }, 500);
     }
+
+    // Wait until curtain has fully covered the screen (500ms transition)
+    await new Promise((resolve) => setTimeout(resolve, 500));
+
     return true;
   });
 

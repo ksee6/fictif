@@ -40,11 +40,14 @@ export interface StoredViewDigest {
 
 export interface ViewDefinition {
   absolutePath: string;
+  realAbsolutePath?: string;
   logicalName: string;
   obfuscatedId: string;
   namespace: string;
   head?: Record<string, any>;
   digest?: StoredViewDigest;
+  isSymlink?: boolean;
+  symlinkTarget?: string;
 }
 
 export type ViewManifest = Map<string, ViewDefinition>;

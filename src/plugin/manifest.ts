@@ -239,6 +239,57 @@ function normalizePath(p: string): string {
   return p.replace(/\\/g, "/");
 }
 
+function deriveLogicalNameFromFile(
+  targetFile: string,
+  root: string,
+  namespaces: Record<string, import("./types.js").ViewNamespaceValue>,
+): string | null {
+  const normalizedTarget = normalizePath(targetFile);
+
+  for (const [ns, nsValue] of Object.entries(namespaces)) {
+    const nsPaths = Array.isArray(nsValue) ? nsValue : [nsValue];
+    for (const p of nsPaths) {
+      if (p.includes("*")) {
+        const baseDir = p.split("*")[0];
+        const paramsBase = normalizePath(path.join(root, baseDir));
+        const cleanBase = paramsBase.endsWith("/") ? paramsBase : `${paramsBase}/`;
+        if (normalizedTarget.startsWith(cleanBase)) {
+          let rel = normalizedTarget.substring(cleanBase.length);
+          for (const suffix of VIEW_SUFFIXES) {
+            if (rel.endsWith(suffix)) {
+              rel = rel.slice(0, -suffix.length);
+              break;
+            }
+          }
+          let primaryName = rel;
+          if (rel === "index") {
+            primaryName = "";
+          } else if (rel.endsWith("/index")) {
+            primaryName = rel.slice(0, -"/index".length);
+          }
+          return ns === "@" ? primaryName : `${ns}::${primaryName}`;
+        }
+      } else {
+        const directPath = normalizePath(
+          path.resolve(root, p.includes(":") ? p.split(":")[0] : p)
+        );
+        if (normalizedTarget === directPath) {
+          if (p.includes(":")) {
+            const alias = p.split(":")[1];
+            return ns === "@" ? alias : `${ns}::${alias}`;
+          }
+          const ext = path.extname(p);
+          const name = path.basename(p, ext);
+          const primaryName = name === "index" ? "" : name;
+          return ns === "@" ? primaryName : `${ns}::${primaryName}`;
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
 export async function buildViewManifest(
   options: ResolvedFictifOptions,
 ): Promise<ViewManifest> {
@@ -255,13 +306,11 @@ export async function buildViewManifest(
     const patterns: string[] = [];
     for (const baseDir of globNamespaces) {
       const normalizedBase = normalizePath(path.join(baseDir, "/**/src/views"));
-      // We need to find directories first to construct patterns, or just use a deep glob if structure is known
-      // The original code used fg onlyDirectories. keeping that logic roughly but simplified if possible.
-      // Actually, let's keep the original logic for globNamespaces as it seems specific to monorepos
       const pkgViewDirs = await fg(normalizedBase, {
         cwd: root,
         onlyDirectories: true,
         absolute: true,
+        followSymbolicLinks: true,
       });
 
       for (const pkgDir of pkgViewDirs) {
@@ -272,36 +321,13 @@ export async function buildViewManifest(
     }
 
     if (patterns.length > 0) {
-      const files = await fg(patterns, {
+      await fg(patterns, {
         cwd: root,
         onlyFiles: true,
         absolute: true,
         unique: true,
+        followSymbolicLinks: true,
       });
-      // Process these files. Since they are "globNamespaces", we might need to deduce namespace from package.json or just add them?
-      // Original code logic for processing files:
-      // It iterates namespaces to find matches. But for globNamespaces, the original code added them to globPatterns
-      // AND THEN relied on the "reverse match against namespaces" loop.
-      // BUT globNamespaces usually aren't in `namespaces` config?
-      // Wait, the original code logic was:
-      // 1. Add globNamespaces to globPatterns.
-      // 2. Add namespaces paths to globPatterns.
-      // 3. fg(globPatterns)
-      // 4. Iterate files and match against `namespaces`.
-      // This implies files from globNamespaces MUST match a namespace config to be included?
-      // Or did I miss something?
-      // "if (!foundNs || !nsRootPath) continue;"
-      // Yes, files MUST match a namespace.
-      // So globNamespaces is just a helper to find *directories* that might contain views, but they must still be mapped?
-      // No, that doesn't make sense. If they are in `namespaces`, they don't need `globNamespaces`.
-      // Let's re-read the original code carefully.
-      // It seems `globNamespaces` just adds to `globPatterns`.
-      // Then `viewFiles` contains EVERYTHING.
-      // Then the loop checks `normalizedPath.startsWith(...)` of each `nsPath`.
-      // If a file from `globNamespaces` is NOT covered by any `namespaces` path, it is SKIPPED.
-      // This suggests `globNamespaces` might be redundant or I am misunderstanding how overlapping paths work.
-      // OR, `namespaces` entries might contain wildcards that match what `globNamespaces` found?
-      // Let's assume for now we strictly follow user request: "priority to views" within a namespace.
     }
   }
 
@@ -324,19 +350,6 @@ export async function buildViewManifest(
       } else {
         const absolutePath = path.resolve(root, p);
         pattern = normalizePath(absolutePath);
-        // If it's a file, pattern is set. If directory, we should likely glob inside?
-        // The original code treated it as specific file if no wildcard?
-        // "absolutePath = ... " then "ext = path.extname(p)".
-        // If it has extension, it's a file.
-        if (!path.extname(p)) {
-          // It is likely a directory, so we should join suffixes?
-          // The original code logic for "else" (non-wildcard, non-alias):
-          // It just resolved it. And added to manifest manually?
-          // "manifest.set(finalLogicalName, ...)"
-          // It didn't glob! It just added it as a single entry.
-          // So if p is a directory, it logic was probably flawed or expected a file.
-          // Let's assume p without wildcard is a single file reference.
-        }
       }
 
       // If it's a wildcard pattern (directory /**/*.vue etc)
@@ -346,6 +359,7 @@ export async function buildViewManifest(
           onlyFiles: true,
           absolute: true,
           unique: true,
+          followSymbolicLinks: true,
         });
 
         // We need to determine the "root" of this pattern to calculate relative path (logical name)
@@ -354,6 +368,36 @@ export async function buildViewManifest(
 
         for (const file of files) {
           const normalizedFile = normalizePath(file);
+
+          let isSymlink = false;
+          let realFile = normalizedFile;
+          let symlinkTarget: string | undefined = undefined;
+
+          try {
+            const lstat = fs.lstatSync(normalizedFile);
+            if (lstat.isSymbolicLink()) {
+              isSymlink = true;
+              realFile = normalizePath(fs.realpathSync(normalizedFile));
+              const linkDest = fs.readlinkSync(normalizedFile);
+              const immediateFile = normalizePath(path.resolve(path.dirname(normalizedFile), linkDest));
+              const immediateTarget = deriveLogicalNameFromFile(immediateFile, root, namespaces);
+              if (immediateTarget !== null && immediateTarget !== undefined) {
+                symlinkTarget = immediateTarget || "index";
+              } else {
+                const finalTarget = deriveLogicalNameFromFile(realFile, root, namespaces);
+                if (finalTarget !== null && finalTarget !== undefined) {
+                  symlinkTarget = finalTarget || "index";
+                }
+              }
+            } else {
+              const real = normalizePath(fs.realpathSync(normalizedFile));
+              if (real !== normalizedFile) {
+                realFile = real;
+              }
+            }
+          } catch {
+            // Ignore broken symlinks
+          }
 
           // Calculate logical name using forward slashes
           const relativePath = normalizedFile.substring(paramsBase.length);
@@ -385,35 +429,40 @@ export async function buildViewManifest(
               ? (ns === "@" ? altName : `${ns}::${altName}`)
               : null;
 
-          const headData = tryExtractHead(normalizedFile);
-          const digestData = tryExtractDigest(normalizedFile);
-          const obfuscatedId = cyrb53(finalPrimaryName || normalizedFile);
+          const headData = tryExtractHead(realFile);
+          const digestData = tryExtractDigest(realFile);
+          const obfuscatedId = cyrb53(realFile);
 
           if (!manifest.has(finalPrimaryName)) {
             manifest.set(finalPrimaryName, {
               absolutePath: normalizedFile,
+              realAbsolutePath: realFile,
               logicalName: finalPrimaryName,
               obfuscatedId,
               namespace: ns,
               head: headData,
               digest: digestData,
+              isSymlink,
+              symlinkTarget,
             });
           }
 
           if (finalAltName && !manifest.has(finalAltName)) {
             manifest.set(finalAltName, {
               absolutePath: normalizedFile,
+              realAbsolutePath: realFile,
               logicalName: finalAltName,
               obfuscatedId,
               namespace: ns,
               head: headData,
               digest: digestData,
+              isSymlink,
+              symlinkTarget,
             });
           }
         }
       } else {
         // Single file mapping (alias or direct)
-        // Logic from original code:
         let absolutePath = "";
         let finalLogicalName = "";
 
@@ -430,18 +479,51 @@ export async function buildViewManifest(
           finalLogicalName = ns === "@" ? name : `${ns}::${name}`;
         }
 
-        const obfuscatedId = cyrb53(finalLogicalName);
-        const headData = tryExtractHead(absolutePath);
-        const digestData = tryExtractDigest(absolutePath);
+        let isSymlink = false;
+        let realFile = absolutePath;
+        let symlinkTarget: string | undefined = undefined;
+
+        try {
+          const lstat = fs.lstatSync(absolutePath);
+          if (lstat.isSymbolicLink()) {
+            isSymlink = true;
+            realFile = normalizePath(fs.realpathSync(absolutePath));
+            const linkDest = fs.readlinkSync(absolutePath);
+            const immediateFile = normalizePath(path.resolve(path.dirname(absolutePath), linkDest));
+            const immediateTarget = deriveLogicalNameFromFile(immediateFile, root, namespaces);
+            if (immediateTarget !== null && immediateTarget !== undefined) {
+              symlinkTarget = immediateTarget || "index";
+            } else {
+              const finalTarget = deriveLogicalNameFromFile(realFile, root, namespaces);
+              if (finalTarget !== null && finalTarget !== undefined) {
+                symlinkTarget = finalTarget || "index";
+              }
+            }
+          } else {
+            const real = normalizePath(fs.realpathSync(absolutePath));
+            if (real !== absolutePath) {
+              realFile = real;
+            }
+          }
+        } catch {
+          // Ignore
+        }
+
+        const obfuscatedId = cyrb53(realFile);
+        const headData = tryExtractHead(realFile);
+        const digestData = tryExtractDigest(realFile);
 
         if (!manifest.has(finalLogicalName)) {
           manifest.set(finalLogicalName, {
             absolutePath: normalizePath(`/${path.relative(root, absolutePath)}`),
+            realAbsolutePath: realFile,
             logicalName: finalLogicalName,
             obfuscatedId,
             namespace: ns,
             head: headData,
             digest: digestData,
+            isSymlink,
+            symlinkTarget,
           });
         }
 
@@ -450,13 +532,28 @@ export async function buildViewManifest(
           if (!manifest.has(rootName)) {
             manifest.set(rootName, {
               absolutePath: normalizePath(`/${path.relative(root, absolutePath)}`),
+              realAbsolutePath: realFile,
               logicalName: rootName,
               obfuscatedId,
               namespace: ns,
               head: headData,
               digest: digestData,
+              isSymlink,
+              symlinkTarget,
             });
           }
+        }
+      }
+    }
+  }
+
+  // Post-process to ensure all symlinks have their symlinkTarget resolved
+  for (const def of manifest.values()) {
+    if (def.isSymlink && !def.symlinkTarget) {
+      for (const otherDef of manifest.values()) {
+        if (!otherDef.isSymlink && otherDef.realAbsolutePath === def.realAbsolutePath) {
+          def.symlinkTarget = otherDef.logicalName;
+          break;
         }
       }
     }
@@ -470,11 +567,14 @@ export function generateVirtualViewsModule(manifest: ViewManifest): string {
   for (const def of manifest.values()) {
     if (!uniqueDefs.has(def.obfuscatedId)) {
       uniqueDefs.set(def.obfuscatedId, def);
+    } else if (!def.isSymlink && uniqueDefs.get(def.obfuscatedId)?.isSymlink) {
+      // Prefer non-symlink definition for canonical import path
+      uniqueDefs.set(def.obfuscatedId, def);
     }
   }
 
   const mapEntries = Array.from(uniqueDefs.values()).map((def) => {
-    return `'${def.obfuscatedId}': () => import('${def.absolutePath}')`;
+    return `'${def.obfuscatedId}': () => import('${def.realAbsolutePath || def.absolutePath}')`;
   });
 
   const nameToIdMap: Record<string, string> = {};
@@ -556,7 +656,7 @@ export function generateVirtualViewsModule(manifest: ViewManifest): string {
 
   const viewsList: string[] = [];
   const seenViews = new Set<string>();
-  for (const def of uniqueDefs.values()) {
+  for (const def of manifest.values()) {
     let name = def.logicalName;
     if (name.startsWith("@::")) {
       name = name.slice(3);
@@ -570,11 +670,40 @@ export function generateVirtualViewsModule(manifest: ViewManifest): string {
     }
   }
 
+  const symlinksMap: Record<string, string> = {};
+  for (const def of manifest.values()) {
+    if (def.isSymlink && def.symlinkTarget) {
+      let symName = def.logicalName;
+      let targetName = def.symlinkTarget;
+
+      const cleanSym = symName.startsWith("@::") ? symName.slice(3) : symName;
+      let cleanTarget = targetName.startsWith("@::") ? targetName.slice(3) : targetName;
+      if (cleanTarget === "") {
+        cleanTarget = "index";
+      }
+
+      symlinksMap[cleanSym] = cleanTarget;
+      symlinksMap[cleanSym.toLowerCase()] = cleanTarget;
+      if (cleanSym.includes("/")) {
+        symlinksMap[cleanSym.replaceAll("/", ".")] = cleanTarget;
+        symlinksMap[cleanSym.replaceAll("/", ".").toLowerCase()] = cleanTarget;
+      }
+
+      symlinksMap[symName] = targetName;
+      symlinksMap[symName.toLowerCase()] = targetName;
+      if (symName.includes("/")) {
+        symlinksMap[symName.replaceAll("/", ".")] = targetName;
+        symlinksMap[symName.replaceAll("/", ".").toLowerCase()] = targetName;
+      }
+    }
+  }
+
   return `// Generated by Fictif. DO NOT EDIT.
 export const views = { ${mapEntries.join(",\n  ")} };
 export const nameToId = ${JSON.stringify(nameToIdMap, null, 2)};
 export const viewsHead = ${JSON.stringify(headMap, null, 2)};
 export const viewsDigest = ${JSON.stringify(digestMap, null, 2)};
 export const viewsList = ${JSON.stringify(viewsList, null, 2)};
+export const viewsSymlinks = ${JSON.stringify(symlinksMap, null, 2)};
 `;
 }
