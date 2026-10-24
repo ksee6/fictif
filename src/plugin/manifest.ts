@@ -561,6 +561,9 @@ export function generateVirtualViewsModule(manifest: ViewManifest): string {
     if (name.startsWith("@::")) {
       name = name.slice(3);
     }
+    if (name === "") {
+      name = "index";
+    }
     if (name && !seenViews.has(name)) {
       seenViews.add(name);
       viewsList.push(name);

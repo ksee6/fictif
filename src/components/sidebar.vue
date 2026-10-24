@@ -18,6 +18,7 @@
 
     <!-- Interactive Shell containing Logo Anchor, Items Rail, and Content Drawer -->
     <div
+      ref="shellRef"
       class="fictif-sidebar-shell"
       :class="{
         'fictif-sidebar-shell--visible': isRailVisible,
@@ -117,6 +118,7 @@
         }"
         @transitionstart="handleDrawerTransitionStart"
         @transitionend="handleDrawerTransitionEnd"
+        @mouseenter="handleContentMouseEnter"
       >
         <Transition
           name="fictif-content-swap"
@@ -140,6 +142,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, useSlots, nextTick, onMounted, onBeforeUnmount } from "vue";
+import { isRailHovered, hoveredItemKey, getLastMousePos } from "./sidebar.js";
 
 interface SidebarProps {
   open?: boolean;
@@ -162,10 +165,25 @@ const emit = defineEmits<{
 
 const slots = useSlots();
 const contentContainerRef = ref<HTMLElement | null>(null);
+const shellRef = ref<HTMLElement | null>(null);
 
-// Hover & Shell State
-const isRailHovered = ref(false);
-const hoveredItemKey = ref<string | null>(null);
+function onWindowMouseMove(e: MouseEvent) {
+  if (isOpen.value) return;
+  if (!isRailHovered.value) return;
+
+  // Rail (56px) + Content Drawer (240px) = 296px width
+  if (e.clientX > 300) {
+    isRailHovered.value = false;
+    hoveredItemKey.value = null;
+  }
+}
+
+function handleContentMouseEnter() {
+  isRailHovered.value = true;
+  if (!hoveredItemKey.value && displayedContentKey.value) {
+    hoveredItemKey.value = displayedContentKey.value;
+  }
+}
 
 // Transition state to completely eliminate scrollbar flickers
 const isContentTransitioning = ref(false);
@@ -314,6 +332,7 @@ function handleLogoClick() {
   } else {
     isOpen.value = false;
     hoveredItemKey.value = null;
+    isRailHovered.value = false;
   }
 }
 
@@ -337,6 +356,7 @@ function handleItemClick(key: string, hasContent: boolean) {
 function handleBackdropClick() {
   isOpen.value = false;
   hoveredItemKey.value = null;
+  isRailHovered.value = false;
 }
 
 // Transition handlers to suppress scrollbar flicker
@@ -391,8 +411,9 @@ watch(
 
 // Keyboard handling: Escape closes sidebar, / keypress opens sidebar
 function onKeydown(e: KeyboardEvent) {
-  if (e.key === "Escape" && isOpen.value) {
+  if (e.key === "Escape" && (isOpen.value || isRailHovered.value)) {
     isOpen.value = false;
+    isRailHovered.value = false;
     hoveredItemKey.value = null;
     return;
   }
@@ -442,9 +463,10 @@ function handleTouchEnd(e: TouchEvent) {
     applyDefaultActiveItem();
     isOpen.value = true;
   }
-  // Swipe left when open: close sidebar
-  else if (isOpen.value && dx < -35) {
+  // Swipe left when open or hovered: close sidebar
+  else if ((isOpen.value || isRailHovered.value) && dx < -35) {
     isOpen.value = false;
+    isRailHovered.value = false;
     hoveredItemKey.value = null;
   }
 }
@@ -453,6 +475,15 @@ onMounted(() => {
   window.addEventListener("keydown", onKeydown);
   window.addEventListener("touchstart", handleTouchStart, { passive: true });
   window.addEventListener("touchend", handleTouchEnd, { passive: true });
+  window.addEventListener("mousemove", onWindowMouseMove, { passive: true });
+
+  if (!isOpen.value && isRailHovered.value) {
+    const { x } = getLastMousePos();
+    if (x > 300) {
+      isRailHovered.value = false;
+      hoveredItemKey.value = null;
+    }
+  }
 
   if (props.open && !currentActiveKey.value) {
     applyDefaultActiveItem();
@@ -463,6 +494,7 @@ onBeforeUnmount(() => {
   window.removeEventListener("keydown", onKeydown);
   window.removeEventListener("touchstart", handleTouchStart);
   window.removeEventListener("touchend", handleTouchEnd);
+  window.removeEventListener("mousemove", onWindowMouseMove);
 });
 </script>
 

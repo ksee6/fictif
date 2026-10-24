@@ -248,7 +248,7 @@ export class Router<T = any> extends Tree<any> {
       let allowLeave = true;
       for (const hook of this._leavingHooks) {
         const canLeave = await hook(target, req);
-        if (!canLeave) {
+        if (canLeave === false) {
           allowLeave = false;
           break;
         }

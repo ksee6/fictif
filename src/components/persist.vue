@@ -1,13 +1,13 @@
 <template>
-  <div ref="mountHostRef" class="fictif-persist-host" :data-persist-id="persistId">
-    <div ref="shellRef" class="fictif-persist-shell">
-      <slot :props="currentProps" />
+  <div class="fictif-persist-host" :data-persist-id="persistId">
+    <div class="fictif-persist-shell">
+      <slot :props="currentProps" :state="entry.state" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, useAttrs, onMounted, onBeforeUnmount, watch } from "vue";
+import { computed, useAttrs, watch } from "vue";
 import { getPersistEntry } from "./persist.js";
 
 interface PersistProps {
@@ -21,9 +21,6 @@ const props = withDefaults(defineProps<PersistProps>(), {
 });
 
 const attrs = useAttrs();
-const mountHostRef = ref<HTMLElement | null>(null);
-const shellRef = ref<HTMLElement | null>(null);
-
 const persistId = computed(() => props.name || props.id || "default");
 const entry = getPersistEntry(persistId.value);
 const currentProps = computed(() => ({ ...attrs, ...entry.props }));
@@ -36,24 +33,6 @@ watch(
   },
   { immediate: true, deep: true }
 );
-
-onMounted(() => {
-  if (entry.domContainer && mountHostRef.value && shellRef.value) {
-    if (entry.domContainer !== shellRef.value) {
-      // Re-adopt preserved DOM shell from cache without re-creating
-      mountHostRef.value.replaceChild(entry.domContainer, shellRef.value);
-      shellRef.value = entry.domContainer;
-    }
-  } else if (shellRef.value) {
-    entry.domContainer = shellRef.value;
-  }
-});
-
-onBeforeUnmount(() => {
-  if (shellRef.value) {
-    entry.domContainer = shellRef.value;
-  }
-});
 </script>
 
 <style scoped>

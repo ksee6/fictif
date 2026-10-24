@@ -15,6 +15,7 @@ export { default as Placeholder } from "./components/placeholder.vue";
 
 export * from "./components/curtain.js";
 export * from "./components/curtains.js";
+export * from "./components/sidebar.js";
 export * from "./components/head.js";
 export * from "./components/persist.js";
 export * from "./views.js";
