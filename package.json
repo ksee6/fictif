@@ -1,0 +1,104 @@
+{
+  "name": "fictif",
+  "version": "0.0.1",
+  "description": "A framework for building web apps, in a better way.",
+  "author": "Abderrahmene Merzoug",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ksee6/fictif.git"
+  },
+  "keywords": [
+    "vue",
+    "vite",
+    "laravel",
+    "router",
+    "blog",
+    "static",
+    "inertia",
+    "router",
+    "full-stack",
+    "framework"
+  ],
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    },
+    "./path": {
+      "import": "./src/path.ts",
+      "types": "./src/path.ts"
+    },
+    "./router": {
+      "import": "./src/router.ts",
+      "types": "./src/router.ts"
+    },
+    "./tree": {
+      "import": "./src/tree.ts",
+      "types": "./src/tree.ts"
+    },
+    "./form": {
+      "import": "./src/form.ts",
+      "types": "./src/form.ts"
+    },
+    "./app": {
+      "import": "./src/app.ts",
+      "types": "./src/app.ts"
+    },
+    "./resource/router": {
+      "import": "./src/router.ts",
+      "types": "./src/router.ts"
+    },
+    "./style": "./src/style.css",
+    "./style.css": "./src/style.css",
+    "./plugin": {
+      "import": "./src/plugin/index.ts",
+      "types": "./src/plugin/index.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "prepublishOnly": "bun build"
+  },
+  "dependencies": {
+    "@codemirror/lang-css": "^6.3.1",
+    "@codemirror/lang-html": "^6.4.12",
+    "@codemirror/lang-javascript": "^6.2.5",
+    "@codemirror/lang-json": "^6.0.2",
+    "@codemirror/lang-markdown": "^6.5.2",
+    "@codemirror/lang-python": "^6.2.1",
+    "@codemirror/lang-vue": "^0.1.3",
+    "@codemirror/theme-one-dark": "^6.1.3",
+    "codemirror": "^6.0.2",
+    "fast-glob": "^3.3.3",
+    "katex": "^0.19.0",
+    "markdown-it": "^14.1.1",
+    "markdown-it-mathjax3": "^5.2.0",
+    "marked": "^18.1.1",
+    "unplugin-vue-markdown": "^29.2.0"
+  },
+  "peerDependencies": {
+    "vue": "^3.4.21"
+  },
+  "devDependencies": {
+    "@types/katex": "^0.16.8",
+    "@types/markdown-it": "^14.1.2",
+    "@types/marked": "^6.0.0",
+    "@types/node": "^24.7.1",
+    "@vitejs/plugin-vue": "^6.0.4",
+    "typescript": "^5.4.5",
+    "unocss": "^66.11.0",
+    "vite": "^5.4.19",
+    "vite-plugin-dts": "^4.5.4",
+    "vue": "^3.4.21"
+  }
+}
