@@ -1,10 +1,10 @@
 <template>
-  <div class="fictif-sidebar-container">
+  <div class="fictif-sidebar-container fixed top-0 left-0 h-screen z-250 flex pointer-events-none font-inherit">
     <!-- Screen Backdrop (20% navy blue) -->
     <Transition name="fictif-backdrop-fade">
       <div
         v-if="isContentVisible"
-        class="fictif-sidebar-backdrop"
+        class="fictif-sidebar-backdrop fixed inset-0 bg-[#0d1b2a]/20 z-240 pointer-events-auto"
         @click="handleBackdropClick"
       />
     </Transition>
@@ -12,25 +12,25 @@
     <!-- Far-left edge hover detector strip (16px) -->
     <div
       v-if="!isRailVisible"
-      class="fictif-far-left-edge"
+      class="fictif-far-left-edge fixed top-0 left-0 w-4 h-screen z-299 pointer-events-auto"
       @mouseenter="handleEdgeMouseEnter"
     />
 
     <!-- Interactive Shell containing Logo Anchor, Items Rail, and Content Drawer -->
     <div
       ref="shellRef"
-      class="fictif-sidebar-shell"
+      class="fictif-sidebar-shell relative flex h-screen pointer-events-none"
       :class="{
-        'fictif-sidebar-shell--visible': isRailVisible,
+        'pointer-events-auto': isRailVisible,
       }"
       @mouseleave="handleShellMouseLeave"
     >
       <!-- Persistent Logo Trigger (always at exact same position, z-index 300) -->
       <div
-        class="fictif-logo-anchor"
+        class="fictif-logo-anchor fixed top-0 left-0 w-14 h-14 flex items-center justify-center z-300 cursor-pointer pointer-events-auto text-white select-none transition-opacity,transform duration-250 ease hover:opacity-100"
         :class="{
-          'fictif-logo-anchor--closed': !isRailVisible,
-          'fictif-logo-anchor--active': isRailVisible,
+          'opacity-40': !isRailVisible,
+          'opacity-90': isRailVisible,
         }"
         @mouseenter="handleLogoMouseEnter"
         @click="handleLogoClick"
@@ -40,36 +40,38 @@
 
       <!-- Main Rail / Items Strip (Width 56px, navy blue #0d1b2a, z-index 250) -->
       <aside
-        class="fictif-items-rail"
+        class="fictif-items-rail relative w-14 h-screen bg-[#00071b] z-250 flex flex-col items-center pointer-events-auto box-border transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
         :class="{
-          'fictif-items-rail--visible': isRailVisible,
+          'translate-x-0': isRailVisible,
+          '-translate-x-full': !isRailVisible,
         }"
       >
         <!-- Top Spacer matching persistent logo size -->
-        <div class="fictif-rail-top-spacer" />
+        <div class="fictif-rail-top-spacer w-14 h-14 shrink-0" />
 
         <!-- Center Items Section -->
-        <nav class="fictif-rail-center" aria-label="Sidebar Center Navigation">
+        <nav class="fictif-rail-center flex-1 flex flex-col items-center justify-center gap-3 w-full" aria-label="Sidebar Center Navigation">
           <div
             v-for="item in centerItems"
             :key="item.key"
-            class="fictif-rail-item-wrapper"
+            class="fictif-rail-item-wrapper relative w-full h-11 flex items-center justify-center"
           >
             <!-- Active Marker (Square + Triangle pointing right, extends outside rail) -->
             <Transition name="fictif-marker-slide">
               <div
                 v-if="isOpen && currentActiveKey === item.key"
-                class="fictif-active-marker"
+                class="fictif-active-marker absolute -right-2 w-70 h-10 bg-white z-1 pointer-events-none [clip-path:polygon(0%_0%,calc(100%-10px)_0%,100%_50%,calc(100%-10px)_100%,0%_100%)]"
               />
             </Transition>
 
             <button
               type="button"
-              class="fictif-rail-item-btn"
+              class="fictif-rail-item-btn relative z-2 w-10 h-10 border-none bg-transparent flex items-center justify-center text-white cursor-pointer p-0 rounded-md transition-opacity,color duration-200 ease hover:opacity-100"
               :class="{
-                'fictif-rail-item-btn--active': isOpen && currentActiveKey === item.key,
-                'fictif-rail-item-btn--hovered': hoveredItemKey === item.key,
-                'fictif-rail-item-btn--no-content': !item.hasContent,
+                'text-[#0d1b2a]! opacity-100!': isOpen && currentActiveKey === item.key,
+                'opacity-100': hoveredItemKey === item.key && !(isOpen && currentActiveKey === item.key),
+                'opacity-90': hoveredItemKey !== item.key && !(isOpen && currentActiveKey === item.key),
+                'cursor-default': !item.hasContent,
               }"
               @mouseenter="handleItemMouseEnter(item.key, item.hasContent)"
               @click="handleItemClick(item.key, item.hasContent)"
@@ -80,22 +82,23 @@
         </nav>
 
         <!-- Bottom Item Section (sticks to bottom) -->
-        <div v-if="bottomItem" class="fictif-rail-bottom">
-          <div class="fictif-rail-item-wrapper">
+        <div v-if="bottomItem" class="fictif-rail-bottom mt-auto mb-4 flex flex-col items-center w-full">
+          <div class="fictif-rail-item-wrapper relative w-full h-11 flex items-center justify-center">
             <Transition name="fictif-marker-slide">
               <div
                 v-if="isOpen && currentActiveKey === bottomItem.key"
-                class="fictif-active-marker"
+                class="fictif-active-marker absolute -right-2 w-70 h-10 bg-white z-1 pointer-events-none [clip-path:polygon(0%_0%,calc(100%-10px)_0%,100%_50%,calc(100%-10px)_100%,0%_100%)]"
               />
             </Transition>
 
             <button
               type="button"
-              class="fictif-rail-item-btn"
+              class="fictif-rail-item-btn relative z-2 w-10 h-10 border-none bg-transparent flex items-center justify-center text-white cursor-pointer p-0 rounded-md transition-opacity,color duration-200 ease hover:opacity-100"
               :class="{
-                'fictif-rail-item-btn--active': isOpen && currentActiveKey === bottomItem.key,
-                'fictif-rail-item-btn--hovered': hoveredItemKey === bottomItem.key,
-                'fictif-rail-item-btn--no-content': !bottomItem.hasContent,
+                'text-[#0d1b2a]! opacity-100!': isOpen && currentActiveKey === bottomItem.key,
+                'opacity-100': hoveredItemKey === bottomItem.key && !(isOpen && currentActiveKey === bottomItem.key),
+                'opacity-90': hoveredItemKey !== bottomItem.key && !(isOpen && currentActiveKey === bottomItem.key),
+                'cursor-default': !bottomItem.hasContent,
               }"
               @mouseenter="handleItemMouseEnter(bottomItem.key, bottomItem.hasContent)"
               @click="handleItemClick(bottomItem.key, bottomItem.hasContent)"
@@ -109,10 +112,11 @@
       <!-- Content Drawer (Darker navy blue #081018, z-index 249, ~4x rail width) -->
       <section
         ref="contentContainerRef"
-        class="fictif-content-drawer"
+        class="fictif-content-drawer relative w-60 h-screen bg-[#081224] z-249 text-slate-200 box-border shadow-[4px_0_16px_rgba(0,0,0,0.35)] transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.2)_transparent]"
         :class="{
-          'fictif-content-drawer--visible': isContentVisible,
-          'fictif-content-drawer--animating': isContentTransitioning,
+          'translate-x-0 opacity-100 pointer-events-auto overflow-y-auto overflow-x-hidden': isContentVisible,
+          '-translate-x-full opacity-0 pointer-events-none overflow-hidden': !isContentVisible,
+          'overflow-hidden!': isContentTransitioning,
         }"
         @transitionstart="handleDrawerTransitionStart"
         @transitionend="handleDrawerTransitionEnd"
@@ -128,7 +132,7 @@
           <div
             v-if="displayedContentKey"
             :key="displayedContentKey"
-            class="fictif-content-inner"
+            class="fictif-content-inner py-5 px-4 w-full box-border overflow-x-hidden"
           >
             <slot :name="displayedContentKey" />
           </div>
@@ -497,238 +501,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.fictif-sidebar-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  z-index: 250;
-  display: flex;
-  pointer-events: none;
-  font-family: inherit;
-}
-
-/* 20% Navy Blue Full Screen Backdrop */
-.fictif-sidebar-backdrop {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(13, 27, 42, 0.2);
-  z-index: 240;
-  pointer-events: auto;
-}
-
-/* Far-left edge hover detector strip (16px wide along screen left edge) */
-.fictif-far-left-edge {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 16px;
-  height: 100vh;
-  z-index: 299;
-  pointer-events: auto;
-}
-
-/* Shell is pointer-events: none when rail is not visible, preventing unwanted hover triggers */
-.fictif-sidebar-shell {
-  position: relative;
-  display: flex;
-  height: 100vh;
-  pointer-events: none;
-}
-
-.fictif-sidebar-shell--visible {
-  pointer-events: auto;
-}
-
-/* Persistent Logo Anchor on Top-Left */
-.fictif-logo-anchor {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 56px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 300;
-  cursor: pointer;
-  pointer-events: auto;
-  color: #ffffff;
-  transition: opacity 0.25s ease, transform 0.2s ease;
-  user-select: none;
-}
-
-.fictif-logo-anchor--closed {
-  opacity: 0.4;
-}
-
-.fictif-logo-anchor--active {
-  opacity: 0.9;
-}
-
-.fictif-logo-anchor:hover {
-  opacity: 1;
-}
-
-/* Rail / Items Sidebar (56px, Navy Blue #0d1b2a, z-index 250) */
-.fictif-items-rail {
-  position: relative;
-  width: 56px;
-  height: 100vh;
-  background-color: #0d1b2a;
-  z-index: 250;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  pointer-events: auto;
-  transform: translateX(-100%);
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-sizing: border-box;
-}
-
-.fictif-items-rail--visible {
-  transform: translateX(0);
-}
-
-.fictif-rail-top-spacer {
-  width: 56px;
-  height: 56px;
-  flex-shrink: 0;
-}
-
-/* Center Items Navigation */
-.fictif-rail-center {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  width: 100%;
-}
-
-.fictif-rail-bottom {
-  margin-top: auto;
-  margin-bottom: 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-}
-
-.fictif-rail-item-wrapper {
-  position: relative;
-  width: 100%;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Active Marker: Really long width so most of it stays off-screen to the left */
-.fictif-active-marker {
-  position: absolute;
-  right: -8px;
-  width: 280px; /* extends 280px, with ~216px staying off-screen */
-  height: 40px;
-  background-color: #ffffff;
-  clip-path: polygon(0% 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 0% 100%);
-  z-index: 1;
-  pointer-events: none;
-}
-
-/* Rail Icon Buttons */
-.fictif-rail-item-btn {
-  position: relative;
-  z-index: 2;
-  width: 40px;
-  height: 40px;
-  border: none;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  opacity: 0.9;
-  cursor: pointer;
-  padding: 0;
-  border-radius: 6px;
-  transition: opacity 0.2s ease, color 0.25s ease;
-}
-
-.fictif-rail-item-btn:hover,
-.fictif-rail-item-btn--hovered {
-  opacity: 1;
-}
-
-.fictif-rail-item-btn--no-content {
-  cursor: default;
-}
-
-/* Active Icon sits on top of marker and animates to dark navy */
-.fictif-rail-item-btn--active {
-  color: #0d1b2a;
-  opacity: 1;
-}
-
-/* Content Drawer (Darker Navy Blue #081018, ~4x rail width, z-index 249) */
-.fictif-content-drawer {
-  position: relative;
-  width: 240px;
-  height: 100vh;
-  background-color: #081018;
-  z-index: 249;
-  pointer-events: auto;
-  overflow-y: auto;
-  overflow-x: hidden;
-  scrollbar-gutter: stable;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
-  color: #e2e8f0;
-  box-sizing: border-box;
-  transform: translateX(-100%);
-  opacity: 0;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.25s ease;
-  box-shadow: 4px 0 16px rgba(0, 0, 0, 0.35);
-}
-
-.fictif-content-drawer--visible {
-  transform: translateX(0);
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.fictif-content-drawer:not(.fictif-content-drawer--visible) {
-  pointer-events: none !important;
-}
-
-/* Suppress all scrollbars during drawer and swap transitions to eliminate flicker */
-.fictif-content-drawer--animating,
-.fictif-content-drawer:not(.fictif-content-drawer--visible) {
-  overflow: hidden !important;
-}
-
-.fictif-content-drawer::-webkit-scrollbar {
-  width: 5px;
-}
-
-.fictif-content-drawer::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.fictif-content-drawer::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-}
-
-.fictif-content-inner {
-  padding: 1.25rem 1rem;
-  width: 100%;
-  box-sizing: border-box;
-  overflow-x: hidden;
-}
-
 /* Backdrop Animation */
 .fictif-backdrop-fade-enter-active,
 .fictif-backdrop-fade-leave-active {
@@ -746,11 +518,7 @@ onBeforeUnmount(() => {
   transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.18s ease;
 }
 
-.fictif-marker-slide-enter-from {
-  opacity: 0;
-  transform: translateX(-36px);
-}
-
+.fictif-marker-slide-enter-from,
 .fictif-marker-slide-leave-to {
   opacity: 0;
   transform: translateX(-36px);

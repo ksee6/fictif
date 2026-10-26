@@ -3,46 +3,46 @@
     <div class="pointer-events-none fixed inset-0" style="z-index: 500;">
       <TransitionGroup name="curtain-fade" appear @after-leave="onCurtainAfterLeave">
         <div
-          v-for="(curtain, index) in curtains"
-          :key="curtain.id"
-          :data-curtain-id="curtain.id"
-          :data-opaque="!isTransparent(curtain)"
+          v-for="(cItem, index) in curtains"
+          :key="cItem.id"
+          :data-curtain-id="cItem.id"
+          :data-opaque="!isTransparent(cItem)"
           class="fixed inset-0 w-screen h-screen flex flex-col items-center outline-none select-none overflow-hidden font-inherit"
           :class="{
-            'pointer-events-none': isTransparent(curtain),
-            'pointer-events-auto': !isTransparent(curtain),
+            'pointer-events-none': isTransparent(cItem),
+            'pointer-events-auto': !isTransparent(cItem),
           }"
-          :style="getCurtainLayerStyle(curtain, index)"
+          :style="getCurtainLayerStyle(cItem, index)"
           tabindex="-1"
-          @keydown="handleKeydown($event, curtain)"
+          @keydown="handleKeydown($event, cItem)"
         >
           <!-- Background layers for non-transparent curtains -->
-          <template v-if="!isTransparent(curtain)">
+          <template v-if="!isTransparent(cItem)">
             <!-- Background image layer (underneath color layer) -->
             <div
-              v-if="curtain.backgroundImage"
+              v-if="cItem.backgroundImage"
               class="absolute inset-0 bg-cover bg-center z-1"
-              :style="{ backgroundImage: `url(${curtain.backgroundImage})` }"
+              :style="{ backgroundImage: `url(${cItem.backgroundImage})` }"
             />
 
             <!-- Background color layer (higher than bg image) -->
             <div
               class="absolute inset-0 z-2"
               :style="{
-                backgroundColor: curtain.backgroundColor,
-                opacity: curtain.backgroundOpacity / 100,
+                backgroundColor: cItem.backgroundColor,
+                opacity: cItem.backgroundOpacity / 100,
               }"
             />
           </template>
 
           <!-- Top center toasts container -->
           <div
-            v-if="getToastsByPosition(curtain, 'top').length > 0"
+            v-if="getToastsByPosition(cItem, 'top').length > 0"
             class="fixed z-10 flex flex-col items-center pointer-events-none left-0 right-0 w-full overflow-visible top-5 gap-3"
           >
             <TransitionGroup name="fictif-toast-top">
               <div
-                v-for="toast in getToastsByPosition(curtain, 'top')"
+                v-for="toast in getToastsByPosition(cItem, 'top')"
                 :key="toast.id"
                 class="pointer-events-auto box-border"
               >
@@ -58,12 +58,12 @@
 
           <!-- Top-left toasts container: aligned by left, stacks downward -->
           <div
-            v-if="getToastsByPosition(curtain, 'top-left').length > 0"
+            v-if="getToastsByPosition(cItem, 'top-left').length > 0"
             class="fixed z-10 flex flex-col items-start pointer-events-none left-5 top-5 gap-3 overflow-visible max-w-sm w-max"
           >
             <TransitionGroup name="fictif-toast-top-left">
               <div
-                v-for="toast in getToastsByPosition(curtain, 'top-left')"
+                v-for="toast in getToastsByPosition(cItem, 'top-left')"
                 :key="toast.id"
                 class="pointer-events-auto box-border"
               >
@@ -79,12 +79,12 @@
 
           <!-- Top-right toasts container: aligned by right, stacks downward -->
           <div
-            v-if="getToastsByPosition(curtain, 'top-right').length > 0"
+            v-if="getToastsByPosition(cItem, 'top-right').length > 0"
             class="fixed z-10 flex flex-col items-end pointer-events-none right-5 top-5 gap-3 overflow-visible max-w-sm w-max"
           >
             <TransitionGroup name="fictif-toast-top-right">
               <div
-                v-for="toast in getToastsByPosition(curtain, 'top-right')"
+                v-for="toast in getToastsByPosition(cItem, 'top-right')"
                 :key="toast.id"
                 class="pointer-events-auto box-border"
               >
@@ -100,12 +100,12 @@
 
           <!-- Center toasts / dialogs container (only if opaque or explicit) -->
           <div
-            v-if="!isTransparent(curtain) && getToastsByPosition(curtain, 'center').length > 0"
+            v-if="!isTransparent(cItem) && getToastsByPosition(cItem, 'center').length > 0"
             class="fixed z-10 flex flex-col items-center pointer-events-none left-0 right-0 w-full overflow-visible top-1/2 -translate-y-1/2 gap-4"
           >
             <TransitionGroup name="fictif-toast-center" appear>
               <div
-                v-for="toast in getToastsByPosition(curtain, 'center')"
+                v-for="toast in getToastsByPosition(cItem, 'center')"
                 :key="toast.id"
                 class="pointer-events-auto box-border"
               >
@@ -121,12 +121,12 @@
 
           <!-- Bottom center toasts container -->
           <div
-            v-if="getToastsByPosition(curtain, 'bottom').length > 0"
+            v-if="getToastsByPosition(cItem, 'bottom').length > 0"
             class="fixed z-10 flex flex-col items-center pointer-events-none left-0 right-0 w-full overflow-visible bottom-5 gap-3"
           >
             <TransitionGroup name="fictif-toast-bottom">
               <div
-                v-for="toast in getToastsByPosition(curtain, 'bottom')"
+                v-for="toast in getToastsByPosition(cItem, 'bottom')"
                 :key="toast.id"
                 class="pointer-events-auto box-border"
               >
@@ -142,12 +142,12 @@
 
           <!-- Bottom-left toasts container: aligned by left, newer is most bottom -->
           <div
-            v-if="getToastsByPosition(curtain, 'bottom-left').length > 0"
+            v-if="getToastsByPosition(cItem, 'bottom-left').length > 0"
             class="fixed z-10 flex flex-col items-start pointer-events-none left-5 bottom-5 gap-3 overflow-visible max-w-sm w-max"
           >
             <TransitionGroup name="fictif-toast-bottom-left">
               <div
-                v-for="toast in getToastsByPosition(curtain, 'bottom-left')"
+                v-for="toast in getToastsByPosition(cItem, 'bottom-left')"
                 :key="toast.id"
                 class="pointer-events-auto box-border"
               >
@@ -163,12 +163,12 @@
 
           <!-- Bottom-right toasts container: aligned by right, newer is most bottom -->
           <div
-            v-if="getToastsByPosition(curtain, 'bottom-right').length > 0"
+            v-if="getToastsByPosition(cItem, 'bottom-right').length > 0"
             class="fixed z-10 flex flex-col items-end pointer-events-none right-5 bottom-5 gap-3 overflow-visible max-w-sm w-max"
           >
             <TransitionGroup name="fictif-toast-bottom-right">
               <div
-                v-for="toast in getToastsByPosition(curtain, 'bottom-right')"
+                v-for="toast in getToastsByPosition(cItem, 'bottom-right')"
                 :key="toast.id"
                 class="pointer-events-auto box-border"
               >
@@ -190,7 +190,7 @@
 <script setup lang="ts">
 import { computed, watch, onMounted, onBeforeUnmount } from "vue";
 import {
-  useCurtains,
+  curtains,
   notifyCurtainLeft,
   updateScrollLock,
   unlockScroll,
@@ -199,8 +199,6 @@ import {
   type ToastInstance,
   type ToastPosition,
 } from "./curtain";
-
-const { curtains } = useCurtains();
 
 function isTransparent(curtain: CurtainInstance): boolean {
   return curtain.backgroundOpacity === 0 && !curtain.backgroundImage;

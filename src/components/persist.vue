@@ -1,6 +1,6 @@
 <template>
-  <div class="fictif-persist-host" :data-persist-id="persistId">
-    <div class="fictif-persist-shell">
+  <div class="fictif-persist-host contents" :data-persist-id="persistId">
+    <div class="fictif-persist-shell contents">
       <slot :props="currentProps" :state="entry.state" />
     </div>
   </div>
@@ -34,13 +34,3 @@ watch(
   { immediate: true, deep: true }
 );
 </script>
-
-<style scoped>
-.fictif-persist-host {
-  display: contents;
-}
-
-.fictif-persist-shell {
-  display: contents;
-}
-</style>

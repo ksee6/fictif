@@ -11,10 +11,11 @@ import {
 import { useRouter, Router } from "./router.js";
 import { Path } from "./path.js";
 import {
-  useCurtain,
-  useCurtains,
+  curtain,
+  fire,
   dismissPreCurtain,
   ensureCurtainInjected,
+  setDefaultAppContext,
   type ShowCurtainOptions,
   type CurtainHandle,
 } from "./components/curtain.js";
@@ -48,115 +49,31 @@ export class RequestObject {
 
 import Placeholder from "./components/placeholder.vue";
 
-const ConfettiLauncherPhicons = defineComponent({
-  name: "FictifConfettiLauncherPhicons",
+const HexagonIcon = defineComponent({
+  name: "FictifHexagonIcon",
   render() {
     return h(
       "svg",
       {
-        width: "72",
-        height: "72",
+        width: "64",
+        height: "64",
         viewBox: "0 0 64 64",
         fill: "none",
         xmlns: "http://www.w3.org/2000/svg",
         style: {
           display: "block",
-          filter: "drop-shadow(0 0 16px rgba(56, 189, 248, 0.5))",
         },
       },
       [
-        // Party popper confetti cannon cone
         h("path", {
-          d: "M10 52 L26 36 L20 30 L4 46 C2.5 47.5 2.5 50.5 4.5 52.5 C6.5 54.5 9.5 54.5 11 53 Z",
+          d: "M32 6 L54 19 L54 45 L32 58 L10 45 L10 19 Z",
           fill: "currentColor",
-          "fill-opacity": "0.35",
+          "fill-opacity": "0.15",
           stroke: "currentColor",
-          "stroke-width": "2",
+          "stroke-width": "2.5",
           "stroke-linejoin": "round",
-        }),
-        // Cannon decorative stripes
-        h("path", {
-          d: "M8 44 L18 34 M13 49 L23 39",
-          stroke: "currentColor",
-          "stroke-width": "1.75",
           "stroke-linecap": "round",
         }),
-        // Cannon mouth ring
-        h("ellipse", {
-          cx: "23",
-          cy: "33",
-          rx: "4.5",
-          ry: "2",
-          transform: "rotate(-45 23 33)",
-          fill: "currentColor",
-          "fill-opacity": "0.7",
-          stroke: "currentColor",
-          "stroke-width": "1.5",
-        }),
-        // Phosphor Sparkle (PhSparkle / PhStarFour)
-        h("path", {
-          d: "M43 7 C43 13 41 15 35 17 C41 19 43 21 43 27 C43 21 45 19 51 17 C45 15 43 13 43 7 Z",
-          fill: "currentColor",
-          "fill-opacity": "0.95",
-          stroke: "currentColor",
-          "stroke-width": "1.5",
-          "stroke-linejoin": "round",
-        }),
-        // Second Phosphor Sparkle
-        h("path", {
-          d: "M26 6 C26 10 24.5 11.5 21 12.5 C24.5 13.5 26 15 26 19 C26 15 27.5 13.5 31 12.5 C27.5 11.5 26 10 26 6 Z",
-          fill: "currentColor",
-          "fill-opacity": "0.85",
-          stroke: "currentColor",
-          "stroke-width": "1.25",
-        }),
-        // Phosphor Diamond (PhDiamond)
-        h("path", {
-          d: "M36 26 L42 32 L36 38 L30 32 Z",
-          fill: "currentColor",
-          "fill-opacity": "0.9",
-          stroke: "currentColor",
-          "stroke-width": "1.5",
-          "stroke-linejoin": "round",
-        }),
-        // Mini Phosphor Star at right
-        h("path", {
-          d: "M54 28 C54 31 53 32 50 33 C53 34 54 35 54 38 C54 35 55 34 58 33 C55 32 54 31 54 28 Z",
-          fill: "currentColor",
-          "fill-opacity": "0.85",
-        }),
-        // Phosphor Heart (PhHeart)
-        h("path", {
-          d: "M16 19 C14 17 11 18 11 20.5 C11 23 15 26 16 27 C17 26 21 23 21 20.5 C21 18 18 17 16 19 Z",
-          fill: "currentColor",
-          "fill-opacity": "0.85",
-        }),
-        // Festive streamer ribbons
-        h("path", {
-          d: "M26 28 Q34 20 42 24 T52 18",
-          stroke: "currentColor",
-          "stroke-width": "2",
-          "stroke-linecap": "round",
-        }),
-        h("path", {
-          d: "M23 22 Q27 14 34 10",
-          stroke: "currentColor",
-          "stroke-width": "1.75",
-          "stroke-linecap": "round",
-        }),
-        h("path", {
-          d: "M29 33 Q38 38 48 34",
-          stroke: "currentColor",
-          "stroke-width": "1.75",
-          "stroke-linecap": "round",
-        }),
-        // Confetti dots
-        h("circle", { cx: "38", cy: "12", r: "2", fill: "currentColor" }),
-        h("circle", { cx: "48", cy: "24", r: "2.5", fill: "currentColor" }),
-        h("circle", { cx: "32", cy: "21", r: "1.75", fill: "currentColor" }),
-        h("circle", { cx: "46", cy: "38", r: "2", fill: "currentColor" }),
-        h("circle", { cx: "18", cy: "13", r: "1.5", fill: "currentColor" }),
-        h("circle", { cx: "56", cy: "22", r: "1.75", fill: "currentColor" }),
       ]
     );
   },
@@ -174,7 +91,7 @@ const CurtainPlaceholderLoader = defineComponent({
           color: "#38bdf8",
         },
       },
-      () => [h(ConfettiLauncherPhicons)]
+      () => [h(HexagonIcon)]
     );
   },
 });
@@ -218,7 +135,7 @@ export function createFictifApp(options: FictifAppOptions = {}): App {
   let visitCount = 0;
 
   const defaultLoaderOptions: ShowCurtainOptions = {
-    backgroundColor: options.loader?.backgroundColor || "#0d1b2a",
+    backgroundColor: options.loader?.backgroundColor || "#00071b",
     backgroundOpacity: options.loader?.backgroundOpacity ?? 100,
     autoDestroy: false,
     toasts: options.loader?.toasts || [
@@ -231,9 +148,8 @@ export function createFictifApp(options: FictifAppOptions = {}): App {
     ...options.loader,
   };
 
-  const curtains = useCurtains();
   if (typeof window !== "undefined") {
-    (window as any).c = curtains;
+    (window as any).c = curtain;
     (window as any).d = defaultLoaderOptions;
   }
 
@@ -254,7 +170,7 @@ export function createFictifApp(options: FictifAppOptions = {}): App {
     visitCount++;
 
     if (!activeLoaderCurtain) {
-      activeLoaderCurtain = curtains.show(defaultLoaderOptions);
+      activeLoaderCurtain = curtain(defaultLoaderOptions);
       curtainShownAt = Date.now();
     }
 
@@ -391,6 +307,7 @@ export function createFictifApp(options: FictifAppOptions = {}): App {
   });
 
   const app = createApp(FictifAppRoot);
+  setDefaultAppContext(app._context);
 
   // Hook into mount to visit initial route automatically
   const origMount = app.mount.bind(app);

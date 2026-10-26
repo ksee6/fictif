@@ -1,5 +1,5 @@
 <template>
-  <div class="fictif-markdown prose dark:prose-invert">
+  <div class="fictif-markdown max-w-full text-inherit prose dark:prose-invert">
     <template v-for="(block, idx) in parsedBlocks" :key="idx">
       <!-- Code Block: Rendered with <Code> -->
       <Code
@@ -10,11 +10,15 @@
         :write="false"
       />
       <!-- Semantic HTML block (headings, paragraphs, lists, tables, etc. with math) -->
-      <div v-else class="fictif-markdown-html" v-html="block.html" />
+      <div
+        v-else
+        class="fictif-markdown-html [&_h1]:text-2rem [&_h1]:font-bold [&_h1]:my-6 [&_h1]:text-slate-50 [&_h2]:text-1.5rem [&_h2]:font-semibold [&_h2]:my-5 [&_h2]:text-slate-100 [&_h3]:text-1.25rem [&_h3]:font-semibold [&_h3]:my-4 [&_h3]:text-slate-200 [&_p]:my-3 [&_p]:leading-relaxed [&_p]:text-slate-300 [&_ul]:my-3 [&_ul]:pl-6 [&_ul]:text-slate-300 [&_ol]:my-3 [&_ol]:pl-6 [&_ol]:text-slate-300 [&_li]:my-1 [&_blockquote]:border-l-4 [&_blockquote]:border-sky-400 [&_blockquote]:pl-4 [&_blockquote]:my-4 [&_blockquote]:text-slate-400 [&_blockquote]:italic [&_a]:text-sky-400 [&_a]:underline [&_code:not(.fictif-code-editor_code)]:bg-white/8 [&_code:not(.fictif-code-editor_code)]:text-sky-400 [&_code:not(.fictif-code-editor_code)]:px-1.5 [&_code:not(.fictif-code-editor_code)]:py-0.5 [&_code:not(.fictif-code-editor_code)]:rounded [&_code:not(.fictif-code-editor_code)]:text-[0.875em]"
+        v-html="block.html"
+      />
     </template>
 
     <!-- Hidden slot to keep Vue reactivity -->
-    <div style="display: none;">
+    <div class="hidden">
       <slot />
     </div>
   </div>
@@ -160,69 +164,3 @@ const parsedBlocks = computed<MarkdownBlock[]>(() => {
   return blocks;
 });
 </script>
-
-<style scoped>
-.fictif-markdown {
-  max-width: 100%;
-  color: inherit;
-}
-
-.fictif-markdown-html :deep(h1) {
-  font-size: 2rem;
-  font-weight: 700;
-  margin: 1.5rem 0 0.75rem 0;
-  color: #f8fafc;
-}
-
-.fictif-markdown-html :deep(h2) {
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin: 1.25rem 0 0.65rem 0;
-  color: #f1f5f9;
-}
-
-.fictif-markdown-html :deep(h3) {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 1rem 0 0.5rem 0;
-  color: #e2e8f0;
-}
-
-.fictif-markdown-html :deep(p) {
-  margin: 0.75rem 0;
-  line-height: 1.65;
-  color: #cbd5e1;
-}
-
-.fictif-markdown-html :deep(ul),
-.fictif-markdown-html :deep(ol) {
-  margin: 0.75rem 0;
-  padding-left: 1.5rem;
-  color: #cbd5e1;
-}
-
-.fictif-markdown-html :deep(li) {
-  margin: 0.25rem 0;
-}
-
-.fictif-markdown-html :deep(blockquote) {
-  border-left: 4px solid #38bdf8;
-  padding-left: 1rem;
-  margin: 1rem 0;
-  color: #94a3b8;
-  font-style: italic;
-}
-
-.fictif-markdown-html :deep(a) {
-  color: #38bdf8;
-  text-decoration: underline;
-}
-
-.fictif-markdown-html :deep(code:not(.fictif-code-editor code)) {
-  background: rgba(255, 255, 255, 0.08);
-  color: #38bdf8;
-  padding: 0.15rem 0.35rem;
-  border-radius: 4px;
-  font-size: 0.875em;
-}
-</style>

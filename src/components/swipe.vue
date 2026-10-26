@@ -1,7 +1,7 @@
 <template>
   <div
     ref="rootRef"
-    class="fictif-swipe"
+    class="fictif-swipe relative flex items-center justify-center w-full max-w-full select-none [touch-action:pan-y] cursor-grab active:cursor-grabbing outline-none"
     tabindex="0"
     @keydown.left="prev"
     @keydown.right="next"
@@ -11,7 +11,7 @@
     <!-- Animating viewport: smoothly transitions width and height -->
     <div
       ref="viewportRef"
-      class="fictif-swipe-viewport"
+      class="fictif-swipe-viewport relative overflow-hidden flex items-center justify-center transition-[width,height] duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] box-border"
       :style="viewportStyle"
     >
       <!-- All slides are kept permanently mounted: states are NEVER destroyed -->
@@ -19,16 +19,17 @@
         v-for="(name, idx) in slideNames"
         :key="name"
         :ref="(el) => setSlideRef(el as HTMLElement, idx)"
-        class="fictif-swipe-slide"
+        class="fictif-swipe-slide absolute top-1/2 left-1/2 flex items-center justify-center w-max h-max box-border will-change-[transform,opacity]"
         :class="{
           'fictif-swipe-slide--active': idx === resolvedIndex,
           'fictif-swipe-slide--prev': idx < resolvedIndex,
           'fictif-swipe-slide--next': idx > resolvedIndex,
-          'fictif-swipe-slide--dragging': isDragging,
+          'fictif-swipe-slide--dragging transition-none!': isDragging,
+          'transition-[transform,opacity] duration-350 ease-[cubic-bezier(0.16,1,0.3,1)]': !isDragging,
         }"
         :style="getSlideStyle(idx)"
       >
-        <div class="fictif-swipe-slide-content">
+        <div class="fictif-swipe-slide-content box-border flex items-center justify-center w-max h-max">
           <slot
             :name="name"
             :parent-box="parentBoundingBox"
@@ -379,63 +380,3 @@ function getSlideStyle(idx: number): CSSProperties {
   };
 }
 </script>
-
-<style scoped>
-.fictif-swipe {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  max-width: 100%;
-  user-select: none;
-  touch-action: pan-y;
-  cursor: grab;
-  outline: none;
-}
-
-.fictif-swipe:active {
-  cursor: grabbing;
-}
-
-.fictif-swipe-viewport {
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition:
-    width 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-    height 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  box-sizing: border-box;
-}
-
-.fictif-swipe-slide {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: max-content;
-  height: max-content;
-  box-sizing: border-box;
-  transition:
-    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.3s ease;
-  will-change: transform, opacity;
-}
-
-.fictif-swipe-slide--dragging {
-  transition: none !important;
-}
-
-.fictif-swipe-slide-content {
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: max-content;
-  height: max-content;
-}
-</style>

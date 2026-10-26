@@ -1,10 +1,13 @@
 <template>
-  <div class="fictif-code-wrapper" :class="{ 'fictif-code-editable': isWritable }">
+  <div
+    class="fictif-code-wrapper relative bg-slate-900 border border-slate-800 rounded-lg overflow-hidden shadow-[0_4px_12px_-2px_rgba(0,0,0,0.35)] my-4 flex flex-col"
+    :class="{ 'fictif-code-editable': isWritable }"
+  >
     <!-- CodeMirror Editor Container (clean, no titlebar or copy button) -->
-    <div ref="editorContainerRef" class="fictif-code-editor" />
+    <div ref="editorContainerRef" class="fictif-code-editor w-full" />
 
     <!-- Hidden slot container for Vue slot reactivity -->
-    <div style="display: none;">
+    <div class="hidden">
       <slot />
     </div>
   </div>
@@ -427,21 +430,3 @@ onBeforeUnmount(() => {
   }
 });
 </script>
-
-<style scoped>
-.fictif-code-wrapper {
-  position: relative;
-  background-color: #0f172a; /* Tailwind slate-900 */
-  border: 1px solid #1e293b; /* Tailwind slate-800 */
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.35);
-  margin: 1rem 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.fictif-code-editor {
-  width: 100%;
-}
-</style>

@@ -1,6 +1,6 @@
 <template>
   <div
-    class="fictif-placeholder"
+    class="fictif-placeholder inline-grid relative items-center justify-items-center box-border max-w-full transition-opacity duration-350 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-visible"
     :class="{
       'is-loading': clampedProgress === 0,
       'is-reconstructing': clampedProgress > 0 && clampedProgress < 100,
@@ -10,7 +10,7 @@
   >
     <!-- 1. Real Slot Content (reconstructed from left to right) -->
     <div
-      class="fictif-placeholder-real"
+      class="fictif-placeholder-real [grid-area:1/1] w-full h-full flex items-center justify-center box-border transition-[clip-path,opacity] duration-350 ease-[cubic-bezier(0.4,0,0.2,1)]"
       :style="realStyle"
     >
       <slot />
@@ -19,7 +19,7 @@
     <!-- 2. Silhouette & Shimmer Layer (visible when progress < 100) -->
     <div
       v-if="!isFullyComplete"
-      class="fictif-placeholder-silhouette"
+      class="fictif-placeholder-silhouette [grid-area:1/1] w-full h-full flex items-center justify-center box-border pointer-events-none select-none [filter:grayscale(80%)_brightness(0.9)] transition-[clip-path,opacity,filter] duration-350 ease-[cubic-bezier(0.4,0,0.2,1)]"
       :class="{ 'shimmer-active': clampedProgress === 0 }"
       :style="silhouetteStyle"
       aria-hidden="true"
@@ -30,7 +30,7 @@
     <!-- 3. Reconstruction Scanner Beam (glowing edge at progress dividing line) -->
     <div
       v-if="clampedProgress > 0 && clampedProgress < 100 && beam"
-      class="fictif-placeholder-beam"
+      class="fictif-placeholder-beam absolute top-0 bottom-0 w-0.5 pointer-events-none z-10 [box-shadow:0_0_8px_currentColor] -translate-x-1/2"
       :style="{ left: `${clampedProgress}%` }"
       aria-hidden="true"
     />
@@ -120,39 +120,15 @@ const silhouetteStyle = computed(() => {
 
 <style scoped>
 .fictif-placeholder {
-  display: inline-grid;
-  position: relative;
-  align-items: center;
-  justify-items: center;
-  box-sizing: border-box;
-  max-width: 100%;
   transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: visible;
-}
-
-.fictif-placeholder-real,
-.fictif-placeholder-silhouette {
-  grid-area: 1 / 1;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
 }
 
 .fictif-placeholder-real {
-  transition: clip-path 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.35s ease;
+  transition: clip-path 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .fictif-placeholder-silhouette {
-  pointer-events: none;
-  user-select: none;
   filter: grayscale(80%) brightness(0.9);
-  transition: clip-path 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.35s ease,
-              filter 0.35s ease;
 }
 
 /* YouTube Thumbnail-Style Loading Skeleton Animation (progress === 0) */

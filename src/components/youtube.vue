@@ -1,66 +1,73 @@
 <template>
   <div
-    class="fictif-youtube"
+    class="fictif-youtube relative block overflow-hidden box-border bg-black max-w-full rounded-none"
     :style="containerStyle"
     :class="{ 'fictif-youtube--active': isActivated }"
   >
     <!-- Before Loading Phase -->
     <template v-if="!isActivated">
-      <!-- 1. Custom slot provided: render slot, loads upon clicking -->
       <div
-        v-if="hasCustomSlot"
-        class="fictif-youtube-custom-slot"
+        class="fictif-youtube-facade absolute inset-0 w-full h-full cursor-pointer flex items-center justify-center overflow-hidden select-none"
         role="button"
         tabindex="0"
         :aria-label="title || 'Play YouTube Video'"
         @click="activatePlayer"
         @keydown.enter.space.prevent="activatePlayer"
       >
-        <slot
-          :load="activatePlayer"
-          :is-activated="isActivated"
-          :video-id="resolvedVideoId"
-          :poster-url="resolvedPosterUrl"
-        />
-      </div>
-
-      <!-- 2. Slot is empty: thumbnail + backdrop + simple & beautiful navy blue YT icon in center -->
-      <div
-        v-else
-        class="fictif-youtube-poster"
-        :style="{ backgroundImage: `url(${resolvedPosterUrl})` }"
-        role="button"
-        tabindex="0"
-        :aria-label="title || 'Play YouTube Video'"
-        @click="activatePlayer"
-        @keydown.enter.space.prevent="activatePlayer"
-      >
-        <!-- Fallback image error detector for maxresdefault -> hqdefault -->
+        <!-- Poster image with object-cover:
+             Injected if slot is empty (regardless of poster prop),
+             OR if slot is provided and poster is true/string -->
         <img
-          v-if="isAutoPoster"
+          v-if="shouldRenderPoster && resolvedPosterUrl"
           :src="resolvedPosterUrl"
-          alt=""
-          style="display: none;"
+          :alt="title || 'YouTube thumbnail'"
+          class="fictif-youtube-poster absolute inset-0 w-full h-full object-cover"
           @error="handlePosterError"
         />
 
-        <!-- Backdrop overlay on top of thumbnail -->
-        <div class="fictif-youtube-backdrop" />
+        <!-- Backdrop overlay when poster image is rendered -->
+        <div
+          v-if="shouldRenderPoster"
+          class="fictif-youtube-backdrop absolute inset-0 bg-[#0d1b2a]/45 pointer-events-none"
+        />
 
-        <!-- Simple and beautiful navy blue YouTube icon in center -->
-        <div class="fictif-youtube-navy-icon" aria-hidden="true">
-          <svg viewBox="0 0 68 48" class="fictif-youtube-svg">
-            <path
-              d="M66.52,7.74c-0.78-2.93-2.49-5.41-5.42-6.19C55.79,.13,34,0,34,0S12.21,.13,6.9,1.55 C3.97,2.33,2.27,4.81,1.48,7.74C0.06,13.05,0,24,0,24s0.06,10.95,1.48,16.26c0.78,2.93,2.49,5.41,5.42,6.19 C12.21,47.87,34,48,34,48s21.79-0.13,27.1-1.55c2.93-0.78,4.64-3.26,5.42-6.19C67.94,34.95,68,24,68,24S67.94,13.05,66.52,7.74z"
-              fill="#0d1b2a"
-            />
-            <path d="M 45,24 27,14 27,34" fill="#ffffff" />
-          </svg>
+        <!-- 1. Custom slot provided: render custom content on top of poster/facade -->
+        <div
+          v-if="hasCustomSlot"
+          class="fictif-youtube-custom-slot relative z-2 w-full h-full flex items-center justify-center pointer-events-auto"
+        >
+          <slot
+            :load="activatePlayer"
+            :is-activated="isActivated"
+            :video-id="resolvedVideoId"
+            :poster-url="resolvedPosterUrl"
+          />
         </div>
 
-        <div v-if="title" class="fictif-youtube-title">
-          {{ title }}
-        </div>
+        <!-- 2. Slot is empty: title & optional play icon -->
+        <template v-else>
+          <!-- Simple and beautiful navy blue YouTube icon in center (optional, default false) -->
+          <div
+            v-if="showPlayIcon"
+            class="fictif-youtube-navy-icon relative z-2 flex items-center justify-center drop-shadow-[0_4px_14px_rgba(0,0,0,0.5)]"
+            aria-hidden="true"
+          >
+            <svg viewBox="0 0 68 48" class="fictif-youtube-svg w-[68px] h-[48px] block">
+              <path
+                d="M66.52,7.74c-0.78-2.93-2.49-5.41-5.42-6.19C55.79,.13,34,0,34,0S12.21,.13,6.9,1.55 C3.97,2.33,2.27,4.81,1.48,7.74C0.06,13.05,0,24,0,24s0.06,10.95,1.48,16.26c0.78,2.93,2.49,5.41,5.42,6.19 C12.21,47.87,34,48,34,48s21.79-0.13,27.1-1.55c2.93-0.78,4.64-3.26,5.42-6.19C67.94,34.95,68,24,68,24S67.94,13.05,66.52,7.74z"
+                fill="#0d1b2a"
+              />
+              <path d="M 45,24 27,14 27,34" fill="#ffffff" />
+            </svg>
+          </div>
+
+          <div
+            v-if="title"
+            class="fictif-youtube-title absolute top-4 left-5 right-5 z-2 text-slate-50 text-[0.95rem] font-semibold leading-[1.35] [text-shadow:0_2px_6px_rgba(0,0,0,0.7)] truncate"
+          >
+            {{ title }}
+          </div>
+        </template>
       </div>
     </template>
 
@@ -68,7 +75,7 @@
     <iframe
       v-if="isActivated"
       ref="iframeRef"
-      class="fictif-youtube-iframe"
+      class="fictif-youtube-iframe absolute inset-0 w-full h-full border-0"
       :src="embedUrl"
       :title="title || 'YouTube video player'"
       :loading="loading"
@@ -226,6 +233,11 @@ interface YouTubeProps {
   rounded?: string | number;
 
   /**
+   * Whether to display the YouTube play button icon on the thumbnail facade. Default: false.
+   */
+  playIcon?: boolean | string | number;
+
+  /**
    * Iframe loading attribute. Default: "lazy".
    */
   loading?: "lazy" | "eager";
@@ -259,7 +271,8 @@ const props = withDefaults(defineProps<YouTubeProps>(), {
   privacy: true,
   enablejsapi: true,
   origin: undefined,
-  poster: true,
+  poster: false,
+  playIcon: false,
   aspectRatio: "16/9",
   width: "100%",
   height: "auto",
@@ -281,10 +294,18 @@ const hasCustomSlot = computed<boolean>(() => Boolean(slots.default));
 
 const iframeRef = ref<HTMLIFrameElement | null>(null);
 
-const isTruthy = (v: any) => v === true || v === "true" || v === 1 || v === "1";
+const isTruthy = (v: any) => v === true || v === "true" || v === "" || v === 1 || v === "1";
 
 const isActivated = ref(isTruthy(props.autoLoad));
 const posterFallback = ref(false);
+const showPlayIcon = computed<boolean>(() => isTruthy(props.playIcon));
+
+const shouldRenderPoster = computed<boolean>(() => {
+  // If slot is empty, always inject the poster
+  if (!hasCustomSlot.value) return true;
+  // If slot is not empty, only inject if poster is true or a custom string URL
+  return isTruthy(props.poster) || (typeof props.poster === "string" && props.poster.length > 0);
+});
 
 watch(
   () => props.autoLoad,
@@ -318,7 +339,7 @@ const resolvedVideoId = computed<string>(() => {
 });
 
 const isAutoPoster = computed<boolean>(() => {
-  return props.poster === true || props.poster === "auto" || props.poster === undefined;
+  return !hasCustomSlot.value || props.poster === true || props.poster === "auto" || props.poster === undefined;
 });
 
 const resolvedPosterUrl = computed<string>(() => {
@@ -525,87 +546,3 @@ const containerStyle = computed<CSSProperties>(() => {
   };
 });
 </script>
-
-<style scoped>
-.fictif-youtube {
-  position: relative;
-  display: block;
-  overflow: hidden;
-  box-sizing: border-box;
-  background-color: #000000;
-  max-width: 100%;
-  border-radius: 0; /* Sharp edges by default */
-}
-
-.fictif-youtube-custom-slot {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.fictif-youtube-poster {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Backdrop on top of the thumbnail */
-.fictif-youtube-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(13, 27, 42, 0.45);
-}
-
-/* Simple and beautiful navy blue YouTube icon in center */
-.fictif-youtube-navy-icon {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.5));
-}
-
-.fictif-youtube-svg {
-  width: 68px;
-  height: 48px;
-  display: block;
-}
-
-.fictif-youtube-title {
-  position: absolute;
-  top: 1rem;
-  left: 1.25rem;
-  right: 1.25rem;
-  z-index: 2;
-  color: #f8fafc;
-  font-size: 0.95rem;
-  font-weight: 600;
-  line-height: 1.35;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.fictif-youtube-iframe {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  border: 0;
-}
-</style>

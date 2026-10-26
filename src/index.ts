@@ -2,7 +2,6 @@
 
 export { default as Sidebar } from "./components/sidebar.vue";
 export { default as Curtain } from "./components/curtain.vue";
-export { default as Curtains } from "./components/curtain.vue";
 export { default as Head } from "./components/head.vue";
 export { default as Code } from "./components/code.vue";
 export { default as Math } from "./components/math.vue";
@@ -14,7 +13,6 @@ export { default as YouTube } from "./components/youtube.vue";
 export { default as Placeholder } from "./components/placeholder.vue";
 
 export * from "./components/curtain.js";
-export * from "./components/curtains.js";
 export * from "./components/sidebar.js";
 export * from "./components/head.js";
 export * from "./components/persist.js";

@@ -6,6 +6,8 @@ import {
   h,
   render,
   type AppContext,
+  type Ref,
+  type ComputedRef,
 } from "vue";
 import CurtainComponent from "./curtain.vue";
 
@@ -67,26 +69,60 @@ export interface CurtainHandle {
   getOptions: () => ShowCurtainOptions;
 }
 
-// Global reactive state
-const curtainsList = ref<CurtainInstance[]>([]);
-const leavingCurtainIds = reactive(new Set<string>());
+// Global reactive singleton state across any bundle or chunk boundaries
+const GLOBAL_CURTAINS_KEY = Symbol.for("fictif.curtains.list");
+const GLOBAL_LEAVING_KEY = Symbol.for("fictif.curtains.leaving");
+const GLOBAL_CURTAIN_MOUNTED_KEY = Symbol.for("fictif.curtains.mounted");
+const GLOBAL_APP_CONTEXT_KEY = Symbol.for("fictif.curtains.appContext");
+
+const g = typeof globalThis !== "undefined" ? (globalThis as any) : {};
+const curtainsList: Ref<CurtainInstance[]> =
+  g[GLOBAL_CURTAINS_KEY] || (g[GLOBAL_CURTAINS_KEY] = ref<CurtainInstance[]>([]));
+const leavingCurtainIds: Set<string> =
+  g[GLOBAL_LEAVING_KEY] || (g[GLOBAL_LEAVING_KEY] = reactive(new Set<string>()));
 let curtainIdCounter = 0;
 let toastIdCounter = 0;
 
-let isCurtainMounted = false;
 let autoInjectedContainer: HTMLElement | null = null;
 
 export function markCurtainMounted(mounted: boolean) {
-  isCurtainMounted = mounted;
+  g[GLOBAL_CURTAIN_MOUNTED_KEY] = mounted;
+}
+
+export function isCurtainMounted(): boolean {
+  return Boolean(g[GLOBAL_CURTAIN_MOUNTED_KEY]);
+}
+
+export function setDefaultAppContext(ctx?: AppContext) {
+  g[GLOBAL_APP_CONTEXT_KEY] = ctx;
+}
+
+export function getDefaultAppContext(): AppContext | undefined {
+  return g[GLOBAL_APP_CONTEXT_KEY];
 }
 
 /**
- * Auto-injects curtain.vue into the top of document.body if it isn't already mounted.
+ * Automatically verifies or injects curtain.vue into document.body.
+ * Users do not need to add the Curtain component manually.
  */
 export function ensureCurtainInjected(appContext?: AppContext) {
-  if (typeof document === "undefined") return;
-  if (isCurtainMounted || autoInjectedContainer || document.getElementById("fictif-curtain-root")) {
+  if (typeof document === "undefined" || !document.body) return;
+
+  if (appContext) {
+    setDefaultAppContext(appContext);
+  }
+
+  const existingRoot = document.getElementById("fictif-curtain-root");
+  if (existingRoot && document.body.contains(existingRoot)) {
     return;
+  }
+
+  // If container was previously created but detached, clean it up
+  if (autoInjectedContainer && autoInjectedContainer !== existingRoot) {
+    try {
+      render(null, autoInjectedContainer);
+      autoInjectedContainer.remove();
+    } catch {}
   }
 
   const container = document.createElement("div");
@@ -100,12 +136,15 @@ export function ensureCurtainInjected(appContext?: AppContext) {
   }
   autoInjectedContainer = container;
 
+  const ctx = appContext || getDefaultAppContext();
   const vnode = h(CurtainComponent);
-  if (appContext) {
-    vnode.appContext = appContext;
+  if (ctx) {
+    vnode.appContext = ctx;
   }
   render(vnode, container);
 }
+
+export const verifyOrInjectCurtain = ensureCurtainInjected;
 
 export function isCurtainOpaque(curtain: Partial<CurtainInstance | ShowCurtainOptions>): boolean {
   return (curtain.backgroundOpacity ?? 0) > 0 || Boolean(curtain.backgroundImage);
@@ -178,203 +217,219 @@ export function dismissPreCurtain() {
   updateScrollLock();
 }
 
-export function useCurtains() {
-  function destroyCurtain(curtainId: string) {
-    dismissPreCurtain();
+export function destroyCurtain(curtainId: string) {
+  dismissPreCurtain();
 
-    const idx = curtainsList.value.findIndex((c) => c.id === curtainId);
-    if (idx !== -1) {
-      const curtain = curtainsList.value[idx];
-      const opaque = isCurtainOpaque(curtain);
-      if (opaque) {
-        // Mark as leaving immediately so scroll lock is unbroken
-        leavingCurtainIds.add(curtainId);
-        // Fallback safety timeout in case Curtains component is unmounted or in headless env
-        setTimeout(() => {
-          if (leavingCurtainIds.has(curtainId)) {
-            leavingCurtainIds.delete(curtainId);
-            updateScrollLock();
-          }
-        }, 650);
-      }
-
-      // Clear timers for all toasts
-      for (const t of curtain.toasts) {
-        if (t.timerId) clearTimeout(t.timerId);
-      }
-      curtain.toasts = [];
-      curtainsList.value.splice(idx, 1);
-    }
-    updateScrollLock();
-  }
-
-  function destroyToast(curtainId: string, toastId: string) {
-    const curtain = curtainsList.value.find((c) => c.id === curtainId);
-    if (!curtain) return;
-
-    const tIdx = curtain.toasts.findIndex((t) => t.id === toastId);
-    if (tIdx !== -1) {
-      const toast = curtain.toasts[tIdx];
-      if (toast.timerId) clearTimeout(toast.timerId);
-      curtain.toasts.splice(tIdx, 1);
-
-      if (curtain.autoDestroy && curtain.toasts.length === 0) {
-        destroyCurtain(curtainId);
-      }
-    }
-  }
-
-  function fireInCurtain(curtainId: string, options: ToastOptions): ToastHandle {
-    ensureCurtainInjected();
-    const curtain = curtainsList.value.find((c) => c.id === curtainId);
-    if (!curtain) {
-      throw new Error(`[curtains] Curtain with id "${curtainId}" not found.`);
-    }
-
-    const toastId = options.id || `toast_${++toastIdCounter}`;
-    const opacity = curtain.backgroundOpacity;
-
-    let position: ToastPosition;
-    if (opacity === 0) {
-      // If curtain opacity is 0, center is an invalid option; fallback to top
-      if (options.position === "center") {
-        console.warn("[curtain] 'center' position is invalid on transparent curtains. Falling back to 'top'.");
-        position = "top";
-      } else {
-        position = options.position || "top";
-      }
-    } else {
-      // For opaque curtains, center is default
-      position = options.position || "center";
-    }
-
-    const toastInst: ToastInstance = {
-      ...options,
-      id: toastId,
-      position,
-      component: typeof options.component === "object" ? markRaw(options.component) : options.component,
-      props: options.props || {},
-      events: options.events || {},
-      destroy: () => destroyToast(curtainId, toastId),
-    };
-
-    if (options.timeout && options.timeout > 0) {
-      toastInst.timerId = setTimeout(() => {
-        toastInst.destroy();
-      }, options.timeout);
-    }
-
-    // Direct push on reactive array triggers Vue dependency update immediately
-    curtain.toasts.push(toastInst);
-
-    return {
-      id: toastId,
-      destroy: toastInst.destroy,
-    };
-  }
-
-  function show(options: ShowCurtainOptions = {}): CurtainHandle {
-    ensureCurtainInjected();
-    const opacity = options.backgroundOpacity ?? 0;
-    const bgImage = options.backgroundImage ?? "";
-    const isTransparent = opacity === 0 && !bgImage;
-
-    // Check if transparent curtain merging applies:
-    // When a newer curtain has transparent background, merge its toasts into existing transparent curtain
-    if (isTransparent) {
-      const existingTransparent = [...curtainsList.value]
-        .reverse()
-        .find((c) => c.backgroundOpacity === 0 && !c.backgroundImage);
-
-      if (existingTransparent) {
-        if (options.toasts && options.toasts.length > 0) {
-          for (const t of options.toasts) {
-            existingTransparent.fire(t);
-          }
+  const idx = curtainsList.value.findIndex((c) => c.id === curtainId);
+  if (idx !== -1) {
+    const item = curtainsList.value[idx];
+    const opaque = isCurtainOpaque(item);
+    if (opaque) {
+      // Mark as leaving immediately so scroll lock is unbroken
+      leavingCurtainIds.add(curtainId);
+      // Fallback safety timeout in case Curtain component is unmounted or in headless env
+      setTimeout(() => {
+        if (leavingCurtainIds.has(curtainId)) {
+          leavingCurtainIds.delete(curtainId);
+          updateScrollLock();
         }
-        return {
-          id: existingTransparent.id,
-          destroy: existingTransparent.destroy,
-          fire: (toastOpts: ToastOptions) => existingTransparent.fire(toastOpts),
-          getOptions: () => ({
-            id: existingTransparent.id,
-            backgroundColor: existingTransparent.backgroundColor,
-            backgroundOpacity: existingTransparent.backgroundOpacity,
-            backgroundImage: existingTransparent.backgroundImage,
-            autoDestroy: existingTransparent.autoDestroy,
-          }),
-        };
-      }
+      }, 650);
     }
 
-    const curtainId = options.id || `curtain_${++curtainIdCounter}`;
-    const curtainInst: CurtainInstance = reactive({
-      id: curtainId,
-      backgroundColor: options.backgroundColor || "#0d1b2a",
-      backgroundOpacity: opacity,
-      backgroundImage: bgImage,
-      autoDestroy: options.autoDestroy ?? true,
-      toasts: [],
-      destroy: () => destroyCurtain(curtainId),
-      fire: (toastOpts: ToastOptions) => fireInCurtain(curtainId, toastOpts),
-    });
-
-    curtainsList.value.push(curtainInst);
-    updateScrollLock();
-
-    if (options.toasts && options.toasts.length > 0) {
-      for (const t of options.toasts) {
-        curtainInst.fire(t);
-      }
+    // Clear timers for all toasts
+    for (const t of item.toasts) {
+      if (t.timerId) clearTimeout(t.timerId);
     }
+    item.toasts = [];
+    curtainsList.value.splice(idx, 1);
+  }
+  updateScrollLock();
+}
 
-    return {
-      id: curtainId,
-      destroy: curtainInst.destroy,
-      fire: (toastOpts: ToastOptions) => curtainInst.fire(toastOpts),
-      getOptions: () => ({
-        id: curtainId,
-        backgroundColor: curtainInst.backgroundColor,
-        backgroundOpacity: curtainInst.backgroundOpacity,
-        backgroundImage: curtainInst.backgroundImage,
-        autoDestroy: curtainInst.autoDestroy,
-      }),
-    };
+export function destroyToast(curtainId: string, toastId: string) {
+  const item = curtainsList.value.find((c) => c.id === curtainId);
+  if (!item) return;
+
+  const tIdx = item.toasts.findIndex((t) => t.id === toastId);
+  if (tIdx !== -1) {
+    const toast = item.toasts[tIdx];
+    if (toast.timerId) clearTimeout(toast.timerId);
+    item.toasts.splice(tIdx, 1);
+
+    if (item.autoDestroy && item.toasts.length === 0) {
+      destroyCurtain(curtainId);
+    }
+  }
+}
+
+export function fireInCurtain(curtainId: string, options: ToastOptions): ToastHandle {
+  ensureCurtainInjected();
+  const item = curtainsList.value.find((c) => c.id === curtainId);
+  if (!item) {
+    throw new Error(`[curtain] Curtain with id "${curtainId}" not found.`);
   }
 
-  function fire(options: ToastOptions): ToastHandle {
-    ensureCurtainInjected();
-    // Finds the latest transparent curtain, or creates one
-    let target = [...curtainsList.value]
-      .reverse()
-      .find((c) => c.backgroundOpacity === 0 && !c.backgroundImage);
+  const toastId = options.id || `toast_${++toastIdCounter}`;
+  const opacity = item.backgroundOpacity;
 
-    if (!target) {
-      show({
-        backgroundOpacity: 0,
-        autoDestroy: true,
-      });
-      target = curtainsList.value[curtainsList.value.length - 1];
+  let position: ToastPosition;
+  if (opacity === 0) {
+    // If curtain opacity is 0, center is an invalid option; fallback to top
+    if (options.position === "center") {
+      console.warn("[curtain] 'center' position is invalid on transparent curtains. Falling back to 'top'.");
+      position = "top";
+    } else {
+      position = options.position || "top";
     }
-
-    return target.fire(options);
+  } else {
+    // For opaque curtains, center is default
+    position = options.position || "center";
   }
 
-  function destroyAll() {
-    for (const c of [...curtainsList.value]) {
-      c.destroy();
-    }
-    leavingCurtainIds.clear();
-    updateScrollLock();
+  const toastInst: ToastInstance = {
+    ...options,
+    id: toastId,
+    position,
+    component: typeof options.component === "object" ? markRaw(options.component) : options.component,
+    props: options.props || {},
+    events: options.events || {},
+    destroy: () => destroyToast(curtainId, toastId),
+  };
+
+  if (options.timeout && options.timeout > 0) {
+    toastInst.timerId = setTimeout(() => {
+      toastInst.destroy();
+    }, options.timeout);
   }
+
+  // Direct push on reactive array triggers Vue dependency update immediately
+  item.toasts.push(toastInst);
 
   return {
-    show,
-    fire,
-    destroyAll,
-    curtains: computed(() => curtainsList.value),
+    id: toastId,
+    destroy: toastInst.destroy,
   };
 }
 
-export const useCurtain = useCurtains;
-export default useCurtain;
+export function createCurtain(options: ShowCurtainOptions = {}): CurtainHandle {
+  ensureCurtainInjected();
+  const opacity = options.backgroundOpacity ?? 0;
+  const bgImage = options.backgroundImage ?? "";
+  const isTransparent = opacity === 0 && !bgImage;
+
+  // Check if transparent curtain merging applies:
+  // When a newer curtain has transparent background, merge its toasts into existing transparent curtain
+  if (isTransparent) {
+    const existingTransparent = [...curtainsList.value]
+      .reverse()
+      .find((c) => c.backgroundOpacity === 0 && !c.backgroundImage);
+
+    if (existingTransparent) {
+      if (options.toasts && options.toasts.length > 0) {
+        for (const t of options.toasts) {
+          existingTransparent.fire(t);
+        }
+      }
+      return {
+        id: existingTransparent.id,
+        destroy: existingTransparent.destroy,
+        fire: (toastOpts: ToastOptions) => existingTransparent.fire(toastOpts),
+        getOptions: () => ({
+          id: existingTransparent.id,
+          backgroundColor: existingTransparent.backgroundColor,
+          backgroundOpacity: existingTransparent.backgroundOpacity,
+          backgroundImage: existingTransparent.backgroundImage,
+          autoDestroy: existingTransparent.autoDestroy,
+        }),
+      };
+    }
+  }
+
+  const curtainId = options.id || `curtain_${++curtainIdCounter}`;
+  const curtainInst: CurtainInstance = reactive({
+    id: curtainId,
+    backgroundColor: options.backgroundColor || "#0d1b2a",
+    backgroundOpacity: opacity,
+    backgroundImage: bgImage,
+    autoDestroy: options.autoDestroy ?? true,
+    toasts: [],
+    destroy: () => destroyCurtain(curtainId),
+    fire: (toastOpts: ToastOptions) => fireInCurtain(curtainId, toastOpts),
+  });
+
+  curtainsList.value.push(curtainInst);
+  updateScrollLock();
+
+  if (options.toasts && options.toasts.length > 0) {
+    for (const t of options.toasts) {
+      curtainInst.fire(t);
+    }
+  }
+
+  return {
+    id: curtainId,
+    destroy: curtainInst.destroy,
+    fire: (toastOpts: ToastOptions) => curtainInst.fire(toastOpts),
+    getOptions: () => ({
+      id: curtainId,
+      backgroundColor: curtainInst.backgroundColor,
+      backgroundOpacity: curtainInst.backgroundOpacity,
+      backgroundImage: curtainInst.backgroundImage,
+      autoDestroy: curtainInst.autoDestroy,
+    }),
+  };
+}
+
+export function fire(options: ToastOptions): ToastHandle {
+  ensureCurtainInjected();
+  // Finds the latest transparent curtain, or creates one
+  let target = [...curtainsList.value]
+    .reverse()
+    .find((c) => c.backgroundOpacity === 0 && !c.backgroundImage);
+
+  if (!target) {
+    createCurtain({
+      backgroundOpacity: 0,
+      autoDestroy: true,
+    });
+    target = curtainsList.value[curtainsList.value.length - 1];
+  }
+
+  return target.fire(options);
+}
+
+export function destroyAll(): void {
+  for (const c of [...curtainsList.value]) {
+    c.destroy();
+  }
+  leavingCurtainIds.clear();
+  updateScrollLock();
+}
+
+export interface CurtainCallable {
+  (options?: ShowCurtainOptions): CurtainHandle;
+  make: (options?: ShowCurtainOptions) => CurtainHandle;
+  show: (options?: ShowCurtainOptions) => CurtainHandle;
+  fire: (options: ToastOptions) => ToastHandle;
+  destroyAll: () => void;
+  curtains: Ref<CurtainInstance[]>;
+}
+
+export const curtain: CurtainCallable = Object.assign(
+  function (options: ShowCurtainOptions = {}) {
+    return createCurtain(options);
+  },
+  {
+    make: createCurtain,
+    show: createCurtain,
+    fire,
+    destroyAll,
+    get curtains() {
+      return curtainsList;
+    },
+  }
+);
+
+export const curtains = curtainsList;
+export { curtainsList };
+export default curtain;
