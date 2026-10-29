@@ -70,10 +70,10 @@ export interface CurtainHandle {
 }
 
 // Global reactive singleton state across any bundle or chunk boundaries
-const GLOBAL_CURTAINS_KEY = Symbol.for("fictif.curtains.list");
-const GLOBAL_LEAVING_KEY = Symbol.for("fictif.curtains.leaving");
-const GLOBAL_CURTAIN_MOUNTED_KEY = Symbol.for("fictif.curtains.mounted");
-const GLOBAL_APP_CONTEXT_KEY = Symbol.for("fictif.curtains.appContext");
+const GLOBAL_CURTAINS_KEY = Symbol.for("mist.curtains.list");
+const GLOBAL_LEAVING_KEY = Symbol.for("mist.curtains.leaving");
+const GLOBAL_CURTAIN_MOUNTED_KEY = Symbol.for("mist.curtains.mounted");
+const GLOBAL_APP_CONTEXT_KEY = Symbol.for("mist.curtains.appContext");
 
 const g = typeof globalThis !== "undefined" ? (globalThis as any) : {};
 const curtainsList: Ref<CurtainInstance[]> =
@@ -112,7 +112,7 @@ export function ensureCurtainInjected(appContext?: AppContext) {
     setDefaultAppContext(appContext);
   }
 
-  const existingRoot = document.getElementById("fictif-curtain-root");
+  const existingRoot = document.getElementById("mist-curtain-root");
   if (existingRoot && document.body.contains(existingRoot)) {
     return;
   }
@@ -126,7 +126,7 @@ export function ensureCurtainInjected(appContext?: AppContext) {
   }
 
   const container = document.createElement("div");
-  container.id = "fictif-curtain-root";
+  container.id = "mist-curtain-root";
 
   // Prepend to the top of body
   if (document.body.firstChild) {
@@ -165,8 +165,8 @@ export function hasActiveOrLeavingOpaqueCurtains(): boolean {
 
 export function lockScroll() {
   if (typeof document === "undefined") return;
-  document.documentElement.classList.add("fictif-no-scroll");
-  document.body.classList.add("fictif-no-scroll");
+  document.documentElement.classList.add("mist-no-scroll");
+  document.body.classList.add("mist-no-scroll");
   document.documentElement.style.overflow = "hidden";
   document.body.style.overflow = "hidden";
 }
@@ -175,8 +175,8 @@ export function unlockScroll() {
   if (typeof document === "undefined") return;
   if (hasActiveOrLeavingOpaqueCurtains()) return;
 
-  document.documentElement.classList.remove("fictif-no-scroll");
-  document.body.classList.remove("fictif-no-scroll");
+  document.documentElement.classList.remove("mist-no-scroll");
+  document.body.classList.remove("mist-no-scroll");
   document.documentElement.style.overflow = "";
   document.body.style.overflow = "";
 }

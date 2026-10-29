@@ -13,7 +13,7 @@ export interface ViewOptions {
   globNamespaces?: string[] | false;
 }
 
-export interface FictifOptions {
+export interface MistOptions {
   views?: ViewOptions | false;
   /**
    * @deprecated Use `views` instead.
@@ -22,7 +22,7 @@ export interface FictifOptions {
 }
 
 // Internal, fully resolved options
-export type ResolvedFictifOptions = {
+export type ResolvedMistOptions = {
   root: string;
   views:
   | false
@@ -52,8 +52,12 @@ export interface ViewDefinition {
 
 export type ViewManifest = Map<string, ViewDefinition>;
 
-export type FictifPlugin = Plugin & {
+export type MistPlugin = Plugin & {
   api: {
     getManifest: () => ViewManifest;
   };
 };
+
+export type FictifOptions = MistOptions;
+export type ResolvedFictifOptions = ResolvedMistOptions;
+export type FictifPlugin = MistPlugin;

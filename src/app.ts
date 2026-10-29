@@ -20,10 +20,10 @@ import {
   type CurtainHandle,
 } from "./components/curtain.js";
 
-export interface FictifAppLoaderOptions extends ShowCurtainOptions {}
+export interface MistAppLoaderOptions extends ShowCurtainOptions {}
 
-export interface FictifAppOptions {
-  loader?: FictifAppLoaderOptions;
+export interface MistAppOptions {
+  loader?: MistAppLoaderOptions;
   router?: Router<any>;
   layout?: any;
 }
@@ -50,7 +50,7 @@ export class RequestObject {
 import Placeholder from "./components/placeholder.vue";
 
 const HexagonIcon = defineComponent({
-  name: "FictifHexagonIcon",
+  name: "MistHexagonIcon",
   render() {
     return h(
       "svg",
@@ -80,7 +80,7 @@ const HexagonIcon = defineComponent({
 });
 
 const CurtainPlaceholderLoader = defineComponent({
-  name: "FictifCurtainPlaceholderLoader",
+  name: "MistCurtainPlaceholderLoader",
   render() {
     return h(
       Placeholder,
@@ -97,9 +97,9 @@ const CurtainPlaceholderLoader = defineComponent({
 });
 
 /**
- * Creates and mounts a Fictif Vue application wired up to the Global Router and Curtains loader.
+ * Creates and mounts a Mist Vue application wired up to the Global Router and Curtains loader.
  */
-export function createFictifApp(options: FictifAppOptions = {}): App {
+export function createMistApp(options: MistAppOptions = {}): App {
   const router = options.router || useRouter();
 
   // Initialize router.currentRequest to have a .view = undefined
@@ -279,8 +279,8 @@ export function createFictifApp(options: FictifAppOptions = {}): App {
   });
 
   // Root Component rendering the currentView (Curtain is auto-injected by curtain.ts)
-  const FictifAppRoot = defineComponent({
-    name: "FictifAppRoot",
+  const MistAppRoot = defineComponent({
+    name: "MistAppRoot",
     setup() {
       onMounted(() => {
         ensureCurtainInjected(app._context);
@@ -299,14 +299,14 @@ export function createFictifApp(options: FictifAppOptions = {}): App {
           ? h(currentLayout.value, null, () => (rendered ? [rendered] : []))
           : rendered;
 
-        return h("div", { class: "fictif-app-root", id: "fictif-app" }, [
+        return h("div", { class: "mist-app-root", id: "mist-app" }, [
           content,
         ]);
       };
     },
   });
 
-  const app = createApp(FictifAppRoot);
+  const app = createApp(MistAppRoot);
   setDefaultAppContext(app._context);
 
   // Hook into mount to visit initial route automatically
@@ -325,4 +325,7 @@ export function createFictifApp(options: FictifAppOptions = {}): App {
   return app;
 }
 
-export default createFictifApp;
+export const createFictifApp = createMistApp;
+export type FictifAppOptions = MistAppOptions;
+export type FictifAppLoaderOptions = MistAppLoaderOptions;
+export default createMistApp;

@@ -192,12 +192,12 @@ export function updateDOMHead(compiled: { title: string; tags: HeadTagDef[] }) {
   }
 
   // 2. Reconcile Tags
-  const oldElements = Array.from(document.head.querySelectorAll("[data-fictif-head]"));
+  const oldElements = Array.from(document.head.querySelectorAll("[data-mist-head]"));
   const newElements: HTMLElement[] = [];
 
   for (const item of compiled.tags) {
     const el = document.createElement(item.tag);
-    el.setAttribute("data-fictif-head", "true");
+    el.setAttribute("data-mist-head", "true");
 
     if (item.props) {
       for (const [k, v] of Object.entries(item.props)) {

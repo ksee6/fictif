@@ -4,14 +4,14 @@ import Markdown from "unplugin-vue-markdown/vite";
 import mathjax3 from "markdown-it-mathjax3";
 
 import type {
-  FictifOptions,
-  FictifPlugin,
-  ResolvedFictifOptions,
+  MistOptions,
+  MistPlugin,
+  ResolvedMistOptions,
   ViewManifest,
 } from "./types.js";
 import { buildViewManifest, generateVirtualViewsModule } from "./manifest.js";
 
-const VIRTUAL_VIEWS_ID = "virtual:fictif-views-data";
+const VIRTUAL_VIEWS_ID = "virtual:mist-views-data";
 const RESOLVED_VIRTUAL_VIEWS_ID = "\0" + VIRTUAL_VIEWS_ID;
 
 function injectInheritAttrsFalse(code: string): string {
@@ -41,10 +41,10 @@ function injectInheritAttrsFalse(code: string): string {
   }
 }
 
-export default function fictif(userOptions: FictifOptions = {}): any {
+export default function mist(userOptions: MistOptions = {}): any {
   let config: ResolvedConfig;
   let manifest: ViewManifest;
-  let options: ResolvedFictifOptions;
+  let options: ResolvedMistOptions;
 
   let rebuildTimeout: NodeJS.Timeout | null = null;
   let rebuildInProgress = false;
@@ -66,15 +66,15 @@ export default function fictif(userOptions: FictifOptions = {}): any {
           server.ws.send({ type: "full-reload" });
         }
       } catch (err) {
-        console.error("[Fictif] Failed to rebuild manifest:", err);
+        console.error("[Mist] Failed to rebuild manifest:", err);
       } finally {
         rebuildInProgress = false;
       }
     }, 10);
   }
 
-  const fictifPlugin: FictifPlugin = {
-    name: "vite-plugin-fictif",
+  const mistPlugin: MistPlugin = {
+    name: "vite-plugin-mist",
     enforce: "pre",
     api: { getManifest: () => manifest },
 
@@ -90,7 +90,7 @@ export default function fictif(userOptions: FictifOptions = {}): any {
       config = _config;
       const root = config.root;
 
-      let viewsOptions: ResolvedFictifOptions["views"];
+      let viewsOptions: ResolvedMistOptions["views"];
 
       const userViews = userOptions.views ?? userOptions.screens;
 
@@ -129,7 +129,7 @@ export default function fictif(userOptions: FictifOptions = {}): any {
         if (isViewFile(file)) {
           // We ideally should check if it's inside one of our watched directories
           // For now, simpler check
-          console.log(`[Fictif] View change detected: ${file}`);
+          console.log(`[Mist] View change detected: ${file}`);
           scheduleManifestRebuild(server);
         }
       };
@@ -206,5 +206,7 @@ export default function fictif(userOptions: FictifOptions = {}): any {
     wrapperClasses: "prose prose-montserrat dark:prose-invert",
   });
 
-  return [fictifPlugin, markdownPlugin];
+  return [mistPlugin, markdownPlugin];
 }
+
+export const fictif = mist;

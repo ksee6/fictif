@@ -1,12 +1,12 @@
 {
-  "name": "fictif",
+  "name": "mist",
   "version": "0.0.1",
   "description": "A framework for building web apps, in a better way.",
   "author": "Abderrahmene Merzoug",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ksee6/fictif.git"
+    "url": "https://github.com/ksee6/mist.git"
   },
   "keywords": [
     "vue",

@@ -1,10 +1,10 @@
 <template>
-  <div class="fictif-sidebar-container fixed top-0 left-0 h-screen z-250 flex pointer-events-none font-inherit">
+  <div class="mist-sidebar-container fixed top-0 left-0 h-screen z-250 flex pointer-events-none font-inherit">
     <!-- Screen Backdrop (20% navy blue) -->
-    <Transition name="fictif-backdrop-fade">
+    <Transition name="mist-backdrop-fade">
       <div
         v-if="isContentVisible"
-        class="fictif-sidebar-backdrop fixed inset-0 bg-[#0d1b2a]/20 z-240 pointer-events-auto"
+        class="mist-sidebar-backdrop fixed inset-0 bg-[#0d1b2a]/20 z-240 pointer-events-auto"
         @click="handleBackdropClick"
       />
     </Transition>
@@ -12,14 +12,14 @@
     <!-- Far-left edge hover detector strip (16px) -->
     <div
       v-if="!isRailVisible"
-      class="fictif-far-left-edge fixed top-0 left-0 w-4 h-screen z-299 pointer-events-auto"
+      class="mist-far-left-edge fixed top-0 left-0 w-4 h-screen z-299 pointer-events-auto"
       @mouseenter="handleEdgeMouseEnter"
     />
 
     <!-- Interactive Shell containing Logo Anchor, Items Rail, and Content Drawer -->
     <div
       ref="shellRef"
-      class="fictif-sidebar-shell relative flex h-screen pointer-events-none"
+      class="mist-sidebar-shell relative flex h-screen pointer-events-none"
       :class="{
         'pointer-events-auto': isRailVisible,
       }"
@@ -27,7 +27,7 @@
     >
       <!-- Persistent Logo Trigger (always at exact same position, z-index 300) -->
       <div
-        class="fictif-logo-anchor fixed top-0 left-0 w-14 h-14 flex items-center justify-center z-300 cursor-pointer pointer-events-auto text-white select-none transition-opacity,transform duration-250 ease hover:opacity-100"
+        class="mist-logo-anchor fixed top-0 left-0 w-14 h-14 flex items-center justify-center z-300 cursor-pointer pointer-events-auto text-white select-none transition-opacity,transform duration-250 ease hover:opacity-100"
         :class="{
           'opacity-40': !isRailVisible,
           'opacity-90': isRailVisible,
@@ -40,33 +40,33 @@
 
       <!-- Main Rail / Items Strip (Width 56px, navy blue #0d1b2a, z-index 250) -->
       <aside
-        class="fictif-items-rail relative w-14 h-screen bg-[#00071b] z-250 flex flex-col items-center pointer-events-auto box-border transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
+        class="mist-items-rail relative w-14 h-screen bg-[#00071b] z-250 flex flex-col items-center pointer-events-auto box-border transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]"
         :class="{
           'translate-x-0': isRailVisible,
           '-translate-x-full': !isRailVisible,
         }"
       >
         <!-- Top Spacer matching persistent logo size -->
-        <div class="fictif-rail-top-spacer w-14 h-14 shrink-0" />
+        <div class="mist-rail-top-spacer w-14 h-14 shrink-0" />
 
         <!-- Center Items Section -->
-        <nav class="fictif-rail-center flex-1 flex flex-col items-center justify-center gap-3 w-full" aria-label="Sidebar Center Navigation">
+        <nav class="mist-rail-center flex-1 flex flex-col items-center justify-center gap-3 w-full" aria-label="Sidebar Center Navigation">
           <div
             v-for="item in centerItems"
             :key="item.key"
-            class="fictif-rail-item-wrapper relative w-full h-11 flex items-center justify-center"
+            class="mist-rail-item-wrapper relative w-full h-11 flex items-center justify-center"
           >
             <!-- Active Marker (Square + Triangle pointing right, extends outside rail) -->
-            <Transition name="fictif-marker-slide">
+            <Transition name="mist-marker-slide">
               <div
                 v-if="isOpen && currentActiveKey === item.key"
-                class="fictif-active-marker absolute -right-2 w-70 h-10 bg-white z-1 pointer-events-none [clip-path:polygon(0%_0%,calc(100%-10px)_0%,100%_50%,calc(100%-10px)_100%,0%_100%)]"
+                class="mist-active-marker absolute -right-2 w-70 h-10 bg-white z-1 pointer-events-none [clip-path:polygon(0%_0%,calc(100%-10px)_0%,100%_50%,calc(100%-10px)_100%,0%_100%)]"
               />
             </Transition>
 
             <button
               type="button"
-              class="fictif-rail-item-btn relative z-2 w-10 h-10 border-none bg-transparent flex items-center justify-center text-white cursor-pointer p-0 rounded-md transition-opacity,color duration-200 ease hover:opacity-100"
+              class="mist-rail-item-btn relative z-2 w-10 h-10 border-none bg-transparent flex items-center justify-center text-white cursor-pointer p-0 rounded-md transition-opacity,color duration-200 ease hover:opacity-100"
               :class="{
                 'text-[#0d1b2a]! opacity-100!': isOpen && currentActiveKey === item.key,
                 'opacity-100': hoveredItemKey === item.key && !(isOpen && currentActiveKey === item.key),
@@ -82,18 +82,18 @@
         </nav>
 
         <!-- Bottom Item Section (sticks to bottom) -->
-        <div v-if="bottomItem" class="fictif-rail-bottom mt-auto mb-4 flex flex-col items-center w-full">
-          <div class="fictif-rail-item-wrapper relative w-full h-11 flex items-center justify-center">
-            <Transition name="fictif-marker-slide">
+        <div v-if="bottomItem" class="mist-rail-bottom mt-auto mb-4 flex flex-col items-center w-full">
+          <div class="mist-rail-item-wrapper relative w-full h-11 flex items-center justify-center">
+            <Transition name="mist-marker-slide">
               <div
                 v-if="isOpen && currentActiveKey === bottomItem.key"
-                class="fictif-active-marker absolute -right-2 w-70 h-10 bg-white z-1 pointer-events-none [clip-path:polygon(0%_0%,calc(100%-10px)_0%,100%_50%,calc(100%-10px)_100%,0%_100%)]"
+                class="mist-active-marker absolute -right-2 w-70 h-10 bg-white z-1 pointer-events-none [clip-path:polygon(0%_0%,calc(100%-10px)_0%,100%_50%,calc(100%-10px)_100%,0%_100%)]"
               />
             </Transition>
 
             <button
               type="button"
-              class="fictif-rail-item-btn relative z-2 w-10 h-10 border-none bg-transparent flex items-center justify-center text-white cursor-pointer p-0 rounded-md transition-opacity,color duration-200 ease hover:opacity-100"
+              class="mist-rail-item-btn relative z-2 w-10 h-10 border-none bg-transparent flex items-center justify-center text-white cursor-pointer p-0 rounded-md transition-opacity,color duration-200 ease hover:opacity-100"
               :class="{
                 'text-[#0d1b2a]! opacity-100!': isOpen && currentActiveKey === bottomItem.key,
                 'opacity-100': hoveredItemKey === bottomItem.key && !(isOpen && currentActiveKey === bottomItem.key),
@@ -112,7 +112,7 @@
       <!-- Content Drawer (Darker navy blue #081018, z-index 249, ~4x rail width) -->
       <section
         ref="contentContainerRef"
-        class="fictif-content-drawer relative w-60 h-screen bg-[#081224] z-249 text-slate-200 box-border shadow-[4px_0_16px_rgba(0,0,0,0.35)] transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.2)_transparent]"
+        class="mist-content-drawer relative w-60 h-screen bg-[#081224] z-249 text-slate-200 box-border shadow-[4px_0_16px_rgba(0,0,0,0.35)] transition-[transform,opacity] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] [scrollbar-gutter:stable] [scrollbar-width:thin] [scrollbar-color:rgba(255,255,255,0.2)_transparent]"
         :class="{
           'translate-x-0 opacity-100 pointer-events-auto overflow-y-auto overflow-x-hidden': isContentVisible,
           '-translate-x-full opacity-0 pointer-events-none overflow-hidden': !isContentVisible,
@@ -123,7 +123,7 @@
         @mouseenter="handleContentMouseEnter"
       >
         <Transition
-          name="fictif-content-swap"
+          name="mist-content-swap"
           mode="out-in"
           @before-leave="handleContentSwapStart"
           @before-enter="handleContentSwapStart"
@@ -132,7 +132,7 @@
           <div
             v-if="displayedContentKey"
             :key="displayedContentKey"
-            class="fictif-content-inner py-5 px-4 w-full box-border overflow-x-hidden"
+            class="mist-content-inner py-5 px-4 w-full box-border overflow-x-hidden"
           >
             <slot :name="displayedContentKey" />
           </div>
@@ -502,40 +502,40 @@ onBeforeUnmount(() => {
 
 <style scoped>
 /* Backdrop Animation */
-.fictif-backdrop-fade-enter-active,
-.fictif-backdrop-fade-leave-active {
+.mist-backdrop-fade-enter-active,
+.mist-backdrop-fade-leave-active {
   transition: opacity 0.25s ease;
 }
 
-.fictif-backdrop-fade-enter-from,
-.fictif-backdrop-fade-leave-to {
+.mist-backdrop-fade-enter-from,
+.mist-backdrop-fade-leave-to {
   opacity: 0;
 }
 
 /* Marker Animation */
-.fictif-marker-slide-enter-active,
-.fictif-marker-slide-leave-active {
+.mist-marker-slide-enter-active,
+.mist-marker-slide-leave-active {
   transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.18s ease;
 }
 
-.fictif-marker-slide-enter-from,
-.fictif-marker-slide-leave-to {
+.mist-marker-slide-enter-from,
+.mist-marker-slide-leave-to {
   opacity: 0;
   transform: translateX(-36px);
 }
 
 /* Content Swap Animation */
-.fictif-content-swap-enter-active,
-.fictif-content-swap-leave-active {
+.mist-content-swap-enter-active,
+.mist-content-swap-leave-active {
   transition: opacity 0.12s ease, transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.fictif-content-swap-enter-from {
+.mist-content-swap-enter-from {
   opacity: 0;
   transform: translateX(10px);
 }
 
-.fictif-content-swap-leave-to {
+.mist-content-swap-leave-to {
   opacity: 0;
   transform: translateX(-10px);
 }

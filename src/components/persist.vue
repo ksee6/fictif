@@ -1,6 +1,6 @@
 <template>
-  <div class="fictif-persist-host contents" :data-persist-id="persistId">
-    <div class="fictif-persist-shell contents">
+  <div class="mist-persist-host contents" :data-persist-id="persistId">
+    <div class="mist-persist-shell contents">
       <slot :props="currentProps" :state="entry.state" />
     </div>
   </div>

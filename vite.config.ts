@@ -45,8 +45,8 @@ export default defineConfig({
         "node:path",
         "node:fs",
         "node:url",
-        "virtual:fictif-pages-data",
-        "virtual:fictif-views-data"
+        "virtual:mist-pages-data",
+        "virtual:mist-views-data"
       ],
       output: {
         exports: "named",

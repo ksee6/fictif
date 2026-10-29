@@ -40,7 +40,7 @@
             v-if="getToastsByPosition(cItem, 'top').length > 0"
             class="fixed z-10 flex flex-col items-center pointer-events-none left-0 right-0 w-full overflow-visible top-5 gap-3"
           >
-            <TransitionGroup name="fictif-toast-top">
+            <TransitionGroup name="mist-toast-top">
               <div
                 v-for="toast in getToastsByPosition(cItem, 'top')"
                 :key="toast.id"
@@ -61,7 +61,7 @@
             v-if="getToastsByPosition(cItem, 'top-left').length > 0"
             class="fixed z-10 flex flex-col items-start pointer-events-none left-5 top-5 gap-3 overflow-visible max-w-sm w-max"
           >
-            <TransitionGroup name="fictif-toast-top-left">
+            <TransitionGroup name="mist-toast-top-left">
               <div
                 v-for="toast in getToastsByPosition(cItem, 'top-left')"
                 :key="toast.id"
@@ -82,7 +82,7 @@
             v-if="getToastsByPosition(cItem, 'top-right').length > 0"
             class="fixed z-10 flex flex-col items-end pointer-events-none right-5 top-5 gap-3 overflow-visible max-w-sm w-max"
           >
-            <TransitionGroup name="fictif-toast-top-right">
+            <TransitionGroup name="mist-toast-top-right">
               <div
                 v-for="toast in getToastsByPosition(cItem, 'top-right')"
                 :key="toast.id"
@@ -103,7 +103,7 @@
             v-if="!isTransparent(cItem) && getToastsByPosition(cItem, 'center').length > 0"
             class="fixed z-10 flex flex-col items-center pointer-events-none left-0 right-0 w-full overflow-visible top-1/2 -translate-y-1/2 gap-4"
           >
-            <TransitionGroup name="fictif-toast-center" appear>
+            <TransitionGroup name="mist-toast-center" appear>
               <div
                 v-for="toast in getToastsByPosition(cItem, 'center')"
                 :key="toast.id"
@@ -124,7 +124,7 @@
             v-if="getToastsByPosition(cItem, 'bottom').length > 0"
             class="fixed z-10 flex flex-col items-center pointer-events-none left-0 right-0 w-full overflow-visible bottom-5 gap-3"
           >
-            <TransitionGroup name="fictif-toast-bottom">
+            <TransitionGroup name="mist-toast-bottom">
               <div
                 v-for="toast in getToastsByPosition(cItem, 'bottom')"
                 :key="toast.id"
@@ -145,7 +145,7 @@
             v-if="getToastsByPosition(cItem, 'bottom-left').length > 0"
             class="fixed z-10 flex flex-col items-start pointer-events-none left-5 bottom-5 gap-3 overflow-visible max-w-sm w-max"
           >
-            <TransitionGroup name="fictif-toast-bottom-left">
+            <TransitionGroup name="mist-toast-bottom-left">
               <div
                 v-for="toast in getToastsByPosition(cItem, 'bottom-left')"
                 :key="toast.id"
@@ -166,7 +166,7 @@
             v-if="getToastsByPosition(cItem, 'bottom-right').length > 0"
             class="fixed z-10 flex flex-col items-end pointer-events-none right-5 bottom-5 gap-3 overflow-visible max-w-sm w-max"
           >
-            <TransitionGroup name="fictif-toast-bottom-right">
+            <TransitionGroup name="mist-toast-bottom-right">
               <div
                 v-for="toast in getToastsByPosition(cItem, 'bottom-right')"
                 :key="toast.id"
@@ -262,8 +262,8 @@ onBeforeUnmount(() => {
 
 <style scoped>
 /* Strictly lock viewport scrollbars while any curtain or pre-curtain is active / fading */
-:global(html.fictif-no-scroll),
-:global(body.fictif-no-scroll),
+:global(html.mist-no-scroll),
+:global(body.mist-no-scroll),
 :global(html:has(.pre-curtain)),
 :global(body:has(.pre-curtain)) {
   overflow: hidden !important;
@@ -289,21 +289,21 @@ onBeforeUnmount(() => {
 }
 
 /* Toast FLIP movement when siblings enter or leave */
-.fictif-toast-top-move,
-.fictif-toast-bottom-move,
-.fictif-toast-center-move,
-.fictif-toast-top-left-move,
-.fictif-toast-top-right-move,
-.fictif-toast-bottom-left-move,
-.fictif-toast-bottom-right-move {
+.mist-toast-top-move,
+.mist-toast-bottom-move,
+.mist-toast-center-move,
+.mist-toast-top-left-move,
+.mist-toast-top-right-move,
+.mist-toast-bottom-left-move,
+.mist-toast-bottom-right-move {
   transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Top center */
-.fictif-toast-top-enter-active {
+.mist-toast-top-enter-active {
   transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.fictif-toast-top-leave-active {
+.mist-toast-top-leave-active {
   position: absolute;
   left: 0;
   right: 0;
@@ -312,56 +312,56 @@ onBeforeUnmount(() => {
   max-width: 90vw;
   transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.fictif-toast-top-enter-from {
+.mist-toast-top-enter-from {
   opacity: 0;
   transform: translateY(-24px) scale(0.95);
 }
-.fictif-toast-top-leave-to {
+.mist-toast-top-leave-to {
   opacity: 0;
   transform: translateY(-20px) scale(0.95);
 }
 
 /* Top left */
-.fictif-toast-top-left-enter-active,
-.fictif-toast-top-left-leave-active {
+.mist-toast-top-left-enter-active,
+.mist-toast-top-left-leave-active {
   transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.fictif-toast-top-left-leave-active {
+.mist-toast-top-left-leave-active {
   position: absolute;
 }
-.fictif-toast-top-left-enter-from {
+.mist-toast-top-left-enter-from {
   opacity: 0;
   transform: translateX(-24px) translateY(-10px) scale(0.95);
 }
-.fictif-toast-top-left-leave-to {
+.mist-toast-top-left-leave-to {
   opacity: 0;
   transform: translateX(-20px) translateY(-10px) scale(0.95);
 }
 
 /* Top right */
-.fictif-toast-top-right-enter-active,
-.fictif-toast-top-right-leave-active {
+.mist-toast-top-right-enter-active,
+.mist-toast-top-right-leave-active {
   transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.fictif-toast-top-right-leave-active {
+.mist-toast-top-right-leave-active {
   position: absolute;
 }
-.fictif-toast-top-right-enter-from {
+.mist-toast-top-right-enter-from {
   opacity: 0;
   transform: translateX(24px) translateY(-10px) scale(0.95);
 }
-.fictif-toast-top-right-leave-to {
+.mist-toast-top-right-leave-to {
   opacity: 0;
   transform: translateX(20px) translateY(-10px) scale(0.95);
 }
 
 /* Center */
-:global(.fictif-toast-center-enter-active),
-:global(.fictif-toast-center-appear-active),
-:global(.fictif-toast-center-leave-active) {
+:global(.mist-toast-center-enter-active),
+:global(.mist-toast-center-appear-active),
+:global(.mist-toast-center-leave-active) {
   transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
-:global(.fictif-toast-center-leave-active) {
+:global(.mist-toast-center-leave-active) {
   position: absolute;
   left: 0;
   right: 0;
@@ -370,24 +370,24 @@ onBeforeUnmount(() => {
   max-width: 90vw;
   transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
-:global(.fictif-toast-center-enter-from),
-:global(.fictif-toast-center-appear-from),
-:global(.fictif-toast-center-leave-to) {
+:global(.mist-toast-center-enter-from),
+:global(.mist-toast-center-appear-from),
+:global(.mist-toast-center-leave-to) {
   opacity: 0 !important;
   transform: scale(0.92);
 }
-:global(.fictif-toast-center-enter-to),
-:global(.fictif-toast-center-appear-to),
-:global(.fictif-toast-center-leave-from) {
+:global(.mist-toast-center-enter-to),
+:global(.mist-toast-center-appear-to),
+:global(.mist-toast-center-leave-from) {
   opacity: 1 !important;
   transform: scale(1);
 }
 
 /* Bottom center */
-.fictif-toast-bottom-enter-active {
+.mist-toast-bottom-enter-active {
   transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.fictif-toast-bottom-leave-active {
+.mist-toast-bottom-leave-active {
   position: absolute;
   left: 0;
   right: 0;
@@ -396,45 +396,45 @@ onBeforeUnmount(() => {
   max-width: 90vw;
   transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.fictif-toast-bottom-enter-from {
+.mist-toast-bottom-enter-from {
   opacity: 0;
   transform: translateY(24px) scale(0.95);
 }
-.fictif-toast-bottom-leave-to {
+.mist-toast-bottom-leave-to {
   opacity: 0;
   transform: translateY(20px) scale(0.95);
 }
 
 /* Bottom left: aligned by left, newer is most bottom */
-.fictif-toast-bottom-left-enter-active,
-.fictif-toast-bottom-left-leave-active {
+.mist-toast-bottom-left-enter-active,
+.mist-toast-bottom-left-leave-active {
   transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.fictif-toast-bottom-left-leave-active {
+.mist-toast-bottom-left-leave-active {
   position: absolute;
 }
-.fictif-toast-bottom-left-enter-from {
+.mist-toast-bottom-left-enter-from {
   opacity: 0;
   transform: translateX(-24px) translateY(12px) scale(0.95);
 }
-.fictif-toast-bottom-left-leave-to {
+.mist-toast-bottom-left-leave-to {
   opacity: 0;
   transform: translateX(-20px) translateY(10px) scale(0.95);
 }
 
 /* Bottom right: aligned by right, newer is most bottom */
-.fictif-toast-bottom-right-enter-active,
-.fictif-toast-bottom-right-leave-active {
+.mist-toast-bottom-right-enter-active,
+.mist-toast-bottom-right-leave-active {
   transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.fictif-toast-bottom-right-leave-active {
+.mist-toast-bottom-right-leave-active {
   position: absolute;
 }
-.fictif-toast-bottom-right-enter-from {
+.mist-toast-bottom-right-enter-from {
   opacity: 0;
   transform: translateX(24px) translateY(12px) scale(0.95);
 }
-.fictif-toast-bottom-right-leave-to {
+.mist-toast-bottom-right-leave-to {
   opacity: 0;
   transform: translateX(20px) translateY(10px) scale(0.95);
 }

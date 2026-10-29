@@ -1,7 +1,7 @@
 <template>
   <span
-    class="fictif-math"
-    :class="isDisplayMode ? 'fictif-math-block block text-center my-4 overflow-x-auto overflow-y-hidden' : 'inline-block align-middle'"
+    class="mist-math"
+    :class="isDisplayMode ? 'mist-math-block block text-center my-4 overflow-x-auto overflow-y-hidden' : 'inline-block align-middle'"
     v-html="renderedHtml"
   />
 </template>
@@ -76,7 +76,7 @@ const renderedHtml = computed<string>(() => {
       throwOnError: props.throwOnError,
     });
   } catch (err: any) {
-    return `<span class="fictif-math-error text-red-500">${err.message || err}</span>`;
+    return `<span class="mist-math-error text-red-500">${err.message || err}</span>`;
   }
 });
 </script>

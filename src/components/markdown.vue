@@ -1,5 +1,5 @@
 <template>
-  <div class="fictif-markdown max-w-full text-inherit prose dark:prose-invert">
+  <div class="mist-markdown max-w-full text-inherit prose dark:prose-invert">
     <template v-for="(block, idx) in parsedBlocks" :key="idx">
       <!-- Code Block: Rendered with <Code> -->
       <Code
@@ -12,7 +12,7 @@
       <!-- Semantic HTML block (headings, paragraphs, lists, tables, etc. with math) -->
       <div
         v-else
-        class="fictif-markdown-html [&_h1]:text-2rem [&_h1]:font-bold [&_h1]:my-6 [&_h1]:text-slate-50 [&_h2]:text-1.5rem [&_h2]:font-semibold [&_h2]:my-5 [&_h2]:text-slate-100 [&_h3]:text-1.25rem [&_h3]:font-semibold [&_h3]:my-4 [&_h3]:text-slate-200 [&_p]:my-3 [&_p]:leading-relaxed [&_p]:text-slate-300 [&_ul]:my-3 [&_ul]:pl-6 [&_ul]:text-slate-300 [&_ol]:my-3 [&_ol]:pl-6 [&_ol]:text-slate-300 [&_li]:my-1 [&_blockquote]:border-l-4 [&_blockquote]:border-sky-400 [&_blockquote]:pl-4 [&_blockquote]:my-4 [&_blockquote]:text-slate-400 [&_blockquote]:italic [&_a]:text-sky-400 [&_a]:underline [&_code:not(.fictif-code-editor_code)]:bg-white/8 [&_code:not(.fictif-code-editor_code)]:text-sky-400 [&_code:not(.fictif-code-editor_code)]:px-1.5 [&_code:not(.fictif-code-editor_code)]:py-0.5 [&_code:not(.fictif-code-editor_code)]:rounded [&_code:not(.fictif-code-editor_code)]:text-[0.875em]"
+        class="mist-markdown-html [&_h1]:text-2rem [&_h1]:font-bold [&_h1]:my-6 [&_h1]:text-slate-50 [&_h2]:text-1.5rem [&_h2]:font-semibold [&_h2]:my-5 [&_h2]:text-slate-100 [&_h3]:text-1.25rem [&_h3]:font-semibold [&_h3]:my-4 [&_h3]:text-slate-200 [&_p]:my-3 [&_p]:leading-relaxed [&_p]:text-slate-300 [&_ul]:my-3 [&_ul]:pl-6 [&_ul]:text-slate-300 [&_ol]:my-3 [&_ol]:pl-6 [&_ol]:text-slate-300 [&_li]:my-1 [&_blockquote]:border-l-4 [&_blockquote]:border-sky-400 [&_blockquote]:pl-4 [&_blockquote]:my-4 [&_blockquote]:text-slate-400 [&_blockquote]:italic [&_a]:text-sky-400 [&_a]:underline [&_code:not(.mist-code-editor_code)]:bg-white/8 [&_code:not(.mist-code-editor_code)]:text-sky-400 [&_code:not(.mist-code-editor_code)]:px-1.5 [&_code:not(.mist-code-editor_code)]:py-0.5 [&_code:not(.mist-code-editor_code)]:rounded [&_code:not(.mist-code-editor_code)]:text-[0.875em]"
         v-html="block.html"
       />
     </template>

@@ -1,6 +1,6 @@
 <template>
   <div
-    class="fictif-placeholder inline-grid relative items-center justify-items-center box-border max-w-full transition-opacity duration-350 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-visible"
+    class="mist-placeholder inline-grid relative items-center justify-items-center box-border max-w-full transition-opacity duration-350 ease-[cubic-bezier(0.4,0,0.2,1)] overflow-visible"
     :class="{
       'is-loading': clampedProgress === 0,
       'is-reconstructing': clampedProgress > 0 && clampedProgress < 100,
@@ -10,7 +10,7 @@
   >
     <!-- 1. Real Slot Content (reconstructed from left to right) -->
     <div
-      class="fictif-placeholder-real [grid-area:1/1] w-full h-full flex items-center justify-center box-border transition-[clip-path,opacity] duration-350 ease-[cubic-bezier(0.4,0,0.2,1)]"
+      class="mist-placeholder-real [grid-area:1/1] w-full h-full flex items-center justify-center box-border transition-[clip-path,opacity] duration-350 ease-[cubic-bezier(0.4,0,0.2,1)]"
       :style="realStyle"
     >
       <slot />
@@ -19,7 +19,7 @@
     <!-- 2. Silhouette & Shimmer Layer (visible when progress < 100) -->
     <div
       v-if="!isFullyComplete"
-      class="fictif-placeholder-silhouette [grid-area:1/1] w-full h-full flex items-center justify-center box-border pointer-events-none select-none [filter:grayscale(80%)_brightness(0.9)] transition-[clip-path,opacity,filter] duration-350 ease-[cubic-bezier(0.4,0,0.2,1)]"
+      class="mist-placeholder-silhouette [grid-area:1/1] w-full h-full flex items-center justify-center box-border pointer-events-none select-none [filter:grayscale(80%)_brightness(0.9)] transition-[clip-path,opacity,filter] duration-350 ease-[cubic-bezier(0.4,0,0.2,1)]"
       :class="{ 'shimmer-active': clampedProgress === 0 }"
       :style="silhouetteStyle"
       aria-hidden="true"
@@ -30,7 +30,7 @@
     <!-- 3. Reconstruction Scanner Beam (glowing edge at progress dividing line) -->
     <div
       v-if="clampedProgress > 0 && clampedProgress < 100 && beam"
-      class="fictif-placeholder-beam absolute top-0 bottom-0 w-0.5 pointer-events-none z-10 [box-shadow:0_0_8px_currentColor] -translate-x-1/2"
+      class="mist-placeholder-beam absolute top-0 bottom-0 w-0.5 pointer-events-none z-10 [box-shadow:0_0_8px_currentColor] -translate-x-1/2"
       :style="{ left: `${clampedProgress}%` }"
       aria-hidden="true"
     />
@@ -119,20 +119,20 @@ const silhouetteStyle = computed(() => {
 </script>
 
 <style scoped>
-.fictif-placeholder {
+.mist-placeholder {
   transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.fictif-placeholder-real {
+.mist-placeholder-real {
   transition: clip-path 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.fictif-placeholder-silhouette {
+.mist-placeholder-silhouette {
   filter: grayscale(80%) brightness(0.9);
 }
 
 /* YouTube Thumbnail-Style Loading Skeleton Animation (progress === 0) */
-.fictif-placeholder-silhouette.shimmer-active {
+.mist-placeholder-silhouette.shimmer-active {
   -webkit-mask-image: linear-gradient(
     90deg,
     rgba(0, 0, 0, 0.6) 0%,
@@ -152,11 +152,11 @@ const silhouetteStyle = computed(() => {
   -webkit-mask-size: 250% 100%;
   mask-size: 250% 100%;
   animation:
-    fictif-placeholder-shimmer 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite,
-    fictif-placeholder-pulse 2.2s ease-in-out infinite;
+    mist-placeholder-shimmer 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite,
+    mist-placeholder-pulse 2.2s ease-in-out infinite;
 }
 
-@keyframes fictif-placeholder-shimmer {
+@keyframes mist-placeholder-shimmer {
   0% {
     -webkit-mask-position: 150% 0;
     mask-position: 150% 0;
@@ -167,7 +167,7 @@ const silhouetteStyle = computed(() => {
   }
 }
 
-@keyframes fictif-placeholder-pulse {
+@keyframes mist-placeholder-pulse {
   0%,
   100% {
     opacity: 0.75;
@@ -178,7 +178,7 @@ const silhouetteStyle = computed(() => {
 }
 
 /* Reconstruction Glowing Beam Line (0 < progress < 100) */
-.fictif-placeholder-beam {
+.mist-placeholder-beam {
   position: absolute;
   top: 0;
   bottom: 0;
@@ -198,10 +198,10 @@ const silhouetteStyle = computed(() => {
     0 0 8px rgba(56, 189, 248, 0.9),
     0 0 16px rgba(56, 189, 248, 0.5),
     0 0 24px rgba(56, 189, 248, 0.25);
-  animation: fictif-placeholder-beam-pulse 1.2s ease-in-out infinite alternate;
+  animation: mist-placeholder-beam-pulse 1.2s ease-in-out infinite alternate;
 }
 
-@keyframes fictif-placeholder-beam-pulse {
+@keyframes mist-placeholder-beam-pulse {
   0% {
     opacity: 0.85;
     filter: drop-shadow(0 0 2px #38bdf8);

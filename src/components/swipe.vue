@@ -1,7 +1,7 @@
 <template>
   <div
     ref="rootRef"
-    class="fictif-swipe relative flex items-center justify-center w-full max-w-full select-none [touch-action:pan-y] cursor-grab active:cursor-grabbing outline-none"
+    class="mist-swipe relative flex items-center justify-center w-full max-w-full select-none [touch-action:pan-y] cursor-grab active:cursor-grabbing outline-none"
     tabindex="0"
     @keydown.left="prev"
     @keydown.right="next"
@@ -11,7 +11,7 @@
     <!-- Animating viewport: smoothly transitions width and height -->
     <div
       ref="viewportRef"
-      class="fictif-swipe-viewport relative overflow-hidden flex items-center justify-center transition-[width,height] duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] box-border"
+      class="mist-swipe-viewport relative overflow-hidden flex items-center justify-center transition-[width,height] duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] box-border"
       :style="viewportStyle"
     >
       <!-- All slides are kept permanently mounted: states are NEVER destroyed -->
@@ -19,17 +19,17 @@
         v-for="(name, idx) in slideNames"
         :key="name"
         :ref="(el) => setSlideRef(el as HTMLElement, idx)"
-        class="fictif-swipe-slide absolute top-1/2 left-1/2 flex items-center justify-center w-max h-max box-border will-change-[transform,opacity]"
+        class="mist-swipe-slide absolute top-1/2 left-1/2 flex items-center justify-center w-max h-max box-border will-change-[transform,opacity]"
         :class="{
-          'fictif-swipe-slide--active': idx === resolvedIndex,
-          'fictif-swipe-slide--prev': idx < resolvedIndex,
-          'fictif-swipe-slide--next': idx > resolvedIndex,
-          'fictif-swipe-slide--dragging transition-none!': isDragging,
+          'mist-swipe-slide--active': idx === resolvedIndex,
+          'mist-swipe-slide--prev': idx < resolvedIndex,
+          'mist-swipe-slide--next': idx > resolvedIndex,
+          'mist-swipe-slide--dragging transition-none!': isDragging,
           'transition-[transform,opacity] duration-350 ease-[cubic-bezier(0.16,1,0.3,1)]': !isDragging,
         }"
         :style="getSlideStyle(idx)"
       >
-        <div class="fictif-swipe-slide-content box-border flex items-center justify-center w-max h-max">
+        <div class="mist-swipe-slide-content box-border flex items-center justify-center w-max h-max">
           <slot
             :name="name"
             :parent-box="parentBoundingBox"
@@ -133,7 +133,7 @@ function updateActiveSlideDimensions() {
   if (!activeSlide) return;
 
   const contentEl =
-    (activeSlide.querySelector(".fictif-swipe-slide-content") as HTMLElement) ||
+    (activeSlide.querySelector(".mist-swipe-slide-content") as HTMLElement) ||
     activeSlide;
   const innerChild =
     (contentEl.firstElementChild as HTMLElement) || contentEl;
@@ -326,7 +326,7 @@ onMounted(() => {
     slideRefs.value.forEach((el) => {
       if (el) {
         slideObserver?.observe(el);
-        const content = el.querySelector(".fictif-swipe-slide-content");
+        const content = el.querySelector(".mist-swipe-slide-content");
         if (content) slideObserver?.observe(content);
         if (content?.firstElementChild) slideObserver?.observe(content.firstElementChild);
       }

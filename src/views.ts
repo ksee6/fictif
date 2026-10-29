@@ -15,7 +15,7 @@ let viewsSymlinks: Record<string, string> = {};
 
 try {
   // @ts-ignore
-  const virtualData = await import("virtual:fictif-views-data");
+  const virtualData = await import("virtual:mist-views-data");
   views = virtualData.views || {};
   nameToId = virtualData.nameToId || {};
   viewsHead = virtualData.viewsHead || {};
@@ -95,7 +95,7 @@ export async function resolve(name: string | object): Promise<ViewComponent> {
   )[normalized];
 
   if (!loader) {
-    console.error(`[Fictif] View not found: "${name}" with id: "${id}".`);
+    console.error(`[Mist] View not found: "${name}" with id: "${id}".`);
     throw new Error(`View not found: ${name}`);
   }
 

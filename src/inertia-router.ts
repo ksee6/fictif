@@ -1,13 +1,13 @@
 // src/inertia-router.ts
 /**
- * 100% Inertia.js-compatible Route Handler for Fictif.
+ * 100% Inertia.js-compatible Route Handler for Mist.
  *
  * Intercepts router requests, exchanges Inertia protocol headers with any
  * Inertia backend (Laravel, Rails, Django, Go, etc.), and renders matching
- * Fictif views with backend props.
+ * Mist views with backend props.
  *
  * Usage:
- *   import { inertiaRouter } from "fictif";
+ *   import { inertiaRouter } from "mist";
  *   router.handle("*", inertiaRouter);
  */
 
@@ -98,7 +98,7 @@ export function consumeInitialPageData(): InertiaPage | null {
       return parsed;
     } catch (err) {
       targetEl.removeAttribute("data-page");
-      console.error("[fictif/inertia] Failed to parse initial data-page payload:", err);
+      console.error("[mist/inertia] Failed to parse initial data-page payload:", err);
       return null;
     }
   }
@@ -156,7 +156,7 @@ export function createInertiaRouter(options: InertiaOptions = {}): InertiaRouteH
           name: typeof componentName === "string" ? componentName : "InertiaView",
           render() {
             return h("div", {
-              class: "fictif-inertia-view",
+              class: "mist-inertia-view",
               "data-component": String(componentName),
             });
           },
@@ -270,7 +270,7 @@ export function createInertiaRouter(options: InertiaOptions = {}): InertiaRouteH
       return false;
     }
 
-    // 9. Parse Inertia JSON response and resolve matching Fictif view with props
+    // 9. Parse Inertia JSON response and resolve matching Mist view with props
     try {
       const page: InertiaPage = await response.json();
       if (page.version) {

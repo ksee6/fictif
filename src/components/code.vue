@@ -1,10 +1,10 @@
 <template>
   <div
-    class="fictif-code-wrapper relative bg-slate-900 border border-slate-800 rounded-lg overflow-hidden shadow-[0_4px_12px_-2px_rgba(0,0,0,0.35)] my-4 flex flex-col"
-    :class="{ 'fictif-code-editable': isWritable }"
+    class="mist-code-wrapper relative bg-slate-900 border border-slate-800 rounded-lg overflow-hidden shadow-[0_4px_12px_-2px_rgba(0,0,0,0.35)] my-4 flex flex-col"
+    :class="{ 'mist-code-editable': isWritable }"
   >
     <!-- CodeMirror Editor Container (clean, no titlebar or copy button) -->
-    <div ref="editorContainerRef" class="fictif-code-editor w-full" />
+    <div ref="editorContainerRef" class="mist-code-editor w-full" />
 
     <!-- Hidden slot container for Vue slot reactivity -->
     <div class="hidden">

@@ -1,13 +1,13 @@
 <template>
   <div
-    class="fictif-youtube relative block overflow-hidden box-border bg-black max-w-full rounded-none"
+    class="mist-youtube relative block overflow-hidden box-border bg-black max-w-full rounded-none"
     :style="containerStyle"
-    :class="{ 'fictif-youtube--active': isActivated }"
+    :class="{ 'mist-youtube--active': isActivated }"
   >
     <!-- Before Loading Phase -->
     <template v-if="!isActivated">
       <div
-        class="fictif-youtube-facade absolute inset-0 w-full h-full cursor-pointer flex items-center justify-center overflow-hidden select-none"
+        class="mist-youtube-facade absolute inset-0 w-full h-full cursor-pointer flex items-center justify-center overflow-hidden select-none"
         role="button"
         tabindex="0"
         :aria-label="title || 'Play YouTube Video'"
@@ -21,20 +21,20 @@
           v-if="shouldRenderPoster && resolvedPosterUrl"
           :src="resolvedPosterUrl"
           :alt="title || 'YouTube thumbnail'"
-          class="fictif-youtube-poster absolute inset-0 w-full h-full object-cover"
+          class="mist-youtube-poster absolute inset-0 w-full h-full object-cover"
           @error="handlePosterError"
         />
 
         <!-- Backdrop overlay when poster image is rendered -->
         <div
           v-if="shouldRenderPoster"
-          class="fictif-youtube-backdrop absolute inset-0 bg-[#0d1b2a]/45 pointer-events-none"
+          class="mist-youtube-backdrop absolute inset-0 bg-[#0d1b2a]/45 pointer-events-none"
         />
 
         <!-- 1. Custom slot provided: render custom content on top of poster/facade -->
         <div
           v-if="hasCustomSlot"
-          class="fictif-youtube-custom-slot relative z-2 w-full h-full flex items-center justify-center pointer-events-auto"
+          class="mist-youtube-custom-slot relative z-2 w-full h-full flex items-center justify-center pointer-events-auto"
         >
           <slot
             :load="activatePlayer"
@@ -49,10 +49,10 @@
           <!-- Simple and beautiful navy blue YouTube icon in center (optional, default false) -->
           <div
             v-if="showPlayIcon"
-            class="fictif-youtube-navy-icon relative z-2 flex items-center justify-center drop-shadow-[0_4px_14px_rgba(0,0,0,0.5)]"
+            class="mist-youtube-navy-icon relative z-2 flex items-center justify-center drop-shadow-[0_4px_14px_rgba(0,0,0,0.5)]"
             aria-hidden="true"
           >
-            <svg viewBox="0 0 68 48" class="fictif-youtube-svg w-[68px] h-[48px] block">
+            <svg viewBox="0 0 68 48" class="mist-youtube-svg w-[68px] h-[48px] block">
               <path
                 d="M66.52,7.74c-0.78-2.93-2.49-5.41-5.42-6.19C55.79,.13,34,0,34,0S12.21,.13,6.9,1.55 C3.97,2.33,2.27,4.81,1.48,7.74C0.06,13.05,0,24,0,24s0.06,10.95,1.48,16.26c0.78,2.93,2.49,5.41,5.42,6.19 C12.21,47.87,34,48,34,48s21.79-0.13,27.1-1.55c2.93-0.78,4.64-3.26,5.42-6.19C67.94,34.95,68,24,68,24S67.94,13.05,66.52,7.74z"
                 fill="#0d1b2a"
@@ -63,7 +63,7 @@
 
           <div
             v-if="title"
-            class="fictif-youtube-title absolute top-4 left-5 right-5 z-2 text-slate-50 text-[0.95rem] font-semibold leading-[1.35] [text-shadow:0_2px_6px_rgba(0,0,0,0.7)] truncate"
+            class="mist-youtube-title absolute top-4 left-5 right-5 z-2 text-slate-50 text-[0.95rem] font-semibold leading-[1.35] [text-shadow:0_2px_6px_rgba(0,0,0,0.7)] truncate"
           >
             {{ title }}
           </div>
@@ -75,7 +75,7 @@
     <iframe
       v-if="isActivated"
       ref="iframeRef"
-      class="fictif-youtube-iframe absolute inset-0 w-full h-full border-0"
+      class="mist-youtube-iframe absolute inset-0 w-full h-full border-0"
       :src="embedUrl"
       :title="title || 'YouTube video player'"
       :loading="loading"
